@@ -1,17 +1,20 @@
+import random
+import time
 from flask import Flask, render_template, request, jsonify
 
 app = Flask(__name__)
 
-# Valid Student Admission Numbers List (College DB)
-# Aap isme apne college ke admission numbers format ke hisab se aur add kar sakte hain
-VALID_STUDENTS = {
-    "25116CN001": "Adarsh dubey",
-    "25116CN407": "Akansha Singh",
-    "25116CN091": "Aisha pandey",
-    "25116CN029": "Aditya yadav:",
+# Student Database with Registered Email / Phone
+STUDENTS_DB = {
+    "25116CN001": {"name": "Adarsh", "email": "adarshkumar83503@gmail.com", "phone": "9696082530"},
+    "25116CN407": {"name": "Akansha", "email": "akanshasingh16806@gmail.com", "phone": "8445446575"},
+    "25116CN091": {"name": "Aisha", "email": "pandeyaisha829@gmail.com", "phone": "8840047689"},
+    "25116CN029": {" name": "Aditya","email":"aditya33322@gmail.com", " phone": "7307360489"}
 }
 
-# Campus Places Database (GL Bajaj Campus)
+# Temporary OTP Store: { "GLB2023001": {"otp": "482910", "expires": timestamp} }
+OTP_STORE = {}
+
 CAMPUS_DATA = {
     "library": {
         "name": "Central Library (GL Bajaj)",
@@ -19,8 +22,8 @@ CAMPUS_DATA = {
         "floor": "Ground / 1st Floor",
         "lat": 28.4728,
         "lng": 77.4897,
-        "indoor": "Main entrance se enter karein -> Right wing corridor -> Central Library.",
-        "keywords": ["library", "book", "padhne", "study", "kitab", "reading room"]
+        "indoor": "Main entrance -> Right wing corridor -> Central Library.",
+        "keywords": ["library", "book", "padhne", "study", "kitab"]
     },
     "canteen": {
         "name": "Campus Cafeteria & Food Court",
@@ -28,8 +31,8 @@ CAMPUS_DATA = {
         "floor": "Ground Floor",
         "lat": 28.4722,
         "lng": 77.4892,
-        "indoor": "Academic block ke piche garden area cross karke seedha Canteen entrance hai.",
-        "keywords": ["canteen", "food", "khana", "lunch", "cafeteria", "chai", "nescafe"]
+        "indoor": "Academic block ke piche garden area cross karke seedha Canteen.",
+        "keywords": ["canteen", "food", "khana", "lunch", "cafeteria"]
     },
     "lab": {
         "name": "IT & CSE Computer Labs",
@@ -37,26 +40,8 @@ CAMPUS_DATA = {
         "floor": "2nd & 3rd Floor",
         "lat": 28.4730,
         "lng": 77.4896,
-        "indoor": "Staircase/Lift se 2nd floor jayein -> Lab complex right wing me hai.",
-        "keywords": ["lab", "computer", "coding", "it lab", "cs lab", "practical", "programming"]
-    },
-    "placement": {
-        "name": "Training & Placement Cell (T&P)",
-        "block": "Admin / Main Block",
-        "floor": "Ground Floor",
-        "lat": 28.4726,
-        "lng": 77.4899,
-        "indoor": "Admin building reception ke paas T&P executive block.",
-        "keywords": ["placement", "job", "interview", "t&p", "internship", "crc"]
-    },
-    "admin": {
-        "name": "Registrar Office & Accounts",
-        "block": "Admin Block",
-        "floor": "Ground Floor",
-        "lat": 28.4725,
-        "lng": 77.4898,
-        "indoor": "Main reception gate se enter karte hi saamne fee counter aur registrar desk hai.",
-        "keywords": ["admin", "office", "fee", "fees", "admit card", "exam cell", "registrar"]
+        "indoor": "Staircase/Lift se 2nd floor -> Lab complex right wing.",
+        "keywords": ["lab", "computer", "coding", "it lab", "cs lab"]
     }
 }
 
@@ -68,26 +53,69 @@ def home():
     }
     return render_template("index.html", locations=formatted_locations)
 
-@app.route("/login", methods=["POST"])
-def student_login():
+# Step 1: Send OTP Endpoint
+@app.route("/send-otp", methods=["POST"])
+def send_otp():
     data = request.json or {}
     admission_no = data.get("admission_no", "").strip().upper()
-    
-    # Check if exists in valid list OR starts with college prefix pattern (e.g., GLB or 20)
-    if admission_no in VALID_STUDENTS:
-        student_name = VALID_STUDENTS[admission_no]
-        return jsonify({"success": True, "message": f"Welcome, {student_name}!", "admission_no": admission_no})
-    
-    # Generic rule-based fallback check (e.g. GLB followed by numbers or 10-digit admission number)
-    if admission_no.startswith("GLB") and len(admission_no) >= 6:
-        return jsonify({"success": True, "message": f"Welcome Student ({admission_no})!", "admission_no": admission_no})
 
-    return jsonify({"success": False, "message": "Invalid Admission Number! Kripya sahi Admission No. darj karein."})
+    if admission_no not in STUDENTS_DB:
+        return jsonify({"success": False, "message": "Admission Number college record me nahi mila!"})
+
+    # 6-Digit Random OTP Generate karein
+    otp = str(random.randint(100000, 999999))
+    OTP_STORE[admission_no] = {
+        "otp": otp,
+        "expires": time.time() + 300  # 5 minute valid
+    }
+
+    student_info = STUDENTS_DB[admission_no]
+
+    # Console me print karein (testing ke liye)
+    print(f"\n==========================================")
+    print(f"🔐 OTP for {student_info['name']} ({admission_no}): {otp}")
+    print(f"==========================================\n")
+
+    # Real implementation me yahan email send hota hai.
+    # Demo ke liye hum masked email aur OTP response me bhej rahe hain taaki test karna aasan ho.
+    masked_email = student_info["email"][:3] + "****@" + student_info["email"].split("@")[1]
+    
+    return jsonify({
+        "success": True,
+        "message": f"OTP successfully sent to {masked_email}",
+        "demo_otp": otp  # Testing/Viva me turant use karne ke liye
+    })
+
+# Step 2: Verify OTP Endpoint
+@app.route("/verify-otp", methods=["POST"])
+def verify_otp():
+    data = request.json or {}
+    admission_no = data.get("admission_no", "").strip().upper()
+    user_otp = data.get("otp", "").strip()
+
+    if admission_no not in OTP_STORE:
+        return jsonify({"success": False, "message": "Pehle OTP request karein!"})
+
+    record = OTP_STORE[admission_no]
+
+    if time.time() > record["expires"]:
+        del OTP_STORE[admission_no]
+        return jsonify({"success": False, "message": "OTP expire ho gaya! Dobara bhejein."})
+
+    if user_otp == record["otp"]:
+        del OTP_STORE[admission_no]
+        student_name = STUDENTS_DB[admission_no]["name"]
+        return jsonify({
+            "success": True, 
+            "message": f"Verification Successful! Welcome {student_name}",
+            "student_name": student_name
+        })
+
+    return jsonify({"success": False, "message": "Galat OTP! Kripya sahi OTP dalein."})
 
 @app.route("/chat", methods=["POST"])
 def chat():
     user_query = request.json.get("message", "").lower().strip()
-    
     matched = None
     for key, data in CAMPUS_DATA.items():
         if any(word in user_query for word in data["keywords"]) or key in user_query:
@@ -95,22 +123,10 @@ def chat():
             break
 
     if matched:
-        reply_text = (
-            f"📍 {matched['name']}\n"
-            f"🏢 Location: {matched['block']} - {matched['floor']}\n"
-            f"🚶 Route: {matched['indoor']}"
-        )
-        return jsonify({
-            "reply": reply_text,
-            "lat": matched["lat"],
-            "lng": matched["lng"]
-        })
+        reply_text = f"📍 {matched['name']}\n🏢 {matched['block']} - {matched['floor']}\n🚶 {matched['indoor']}"
+        return jsonify({"reply": reply_text, "lat": matched["lat"], "lng": matched["lng"]})
 
-    return jsonify({
-        "reply": "Maaf kijiye, ye jagah campus database me nahi mili. Aap Library, Canteen, Computer Lab, ya Placement Cell try kar sakte hain.",
-        "lat": None,
-        "lng": None
-    })
+    return jsonify({"reply": "Location nahi mili. Library, Canteen ya Lab try karein.", "lat": None, "lng": None})
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
