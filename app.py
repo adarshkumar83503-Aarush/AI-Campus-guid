@@ -5,11 +5,9 @@ app = Flask(__name__)
 # Valid Student Admission Numbers List (College DB)
 # Aap isme apne college ke admission numbers format ke hisab se aur add kar sakte hain
 VALID_STUDENTS = {
-    "2023BT0101": "Rahul Sharma",
-    "2023BT0102": "Aman Verma",
-    "2023BT0103": "Priya Singh",
-    "GLB2023001": "Student 1",
-    "GLB2023002": "Student 2"
+    "25116CN001": "Adarsh dubey",
+    "25116CN407": "Akansha Singh",
+    "25116CN091": "Aisha pandey",
 }
 
 # Campus Places Database (GL Bajaj Campus)
