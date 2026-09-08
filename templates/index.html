@@ -29,7 +29,7 @@
 <body class="bg-gray-100 h-screen flex flex-col md:flex-row overflow-hidden font-sans relative">
 
   <!-- Student Login Modal Overlay -->
-  <div id="loginModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+  <div id="loginModal" class="fixed inset-0 bg-slate-900/90 backdrop-blur-md flex items-center justify-center p-4" style="z-index: 99999 !important;">
     <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 text-center">
       <div class="w-14 h-14 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl">
         🎓
@@ -163,7 +163,7 @@
               color: "#ffffff",
               weight: 3,
               fillOpacity: 1
-            }).addTo(map).bindPopup("📍 <b>Aap Yahan Hain</b>").openPopup();
+            }).addTo(map).bindPopup("📍 <b>your location </b>").openPopup();
           } else {
             realTimeMarker.setLatLng([userLat, userLng]);
           }
