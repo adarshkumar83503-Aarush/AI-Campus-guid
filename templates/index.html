@@ -6,9 +6,11 @@
   <title>AI Campus Guide & Navigator</title>
   <script src="https://cdn.tailwindcss.com"></script>
   
+  <!-- Leaflet Map CSS & JS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
+  <!-- Leaflet Routing Machine -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
   <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
 
@@ -26,87 +28,89 @@
 </head>
 <body class="bg-gray-100 h-screen flex flex-col md:flex-row overflow-hidden font-sans relative">
 
-  <!-- Student OTP Verification Modal -->
+  <!-- Student Email OTP Verification Modal Overlay -->
   <div id="loginModal" class="fixed inset-0 bg-slate-900/90 backdrop-blur-md flex items-center justify-center p-4" style="z-index: 99999 !important;">
     <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 text-center relative" style="z-index: 100000 !important;">
       
-      <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-2 text-2xl font-bold">
-        🎓
+      <div class="w-14 h-14 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl font-bold">
+        🛡️
       </div>
       <h2 class="text-xl font-bold text-gray-800">Student Portal Login</h2>
-      <p class="text-xs text-gray-500 mt-1">Apna Admission No. daal kar OTP se verify karein.</p>
+      <p class="text-xs text-gray-500 mt-1">Admission No. daal kar registered email OTP se verify karein.</p>
 
       <!-- Step 1: Admission Input -->
-      <div id="stepAdmission" class="mt-4 text-left">
+      <div id="stepAdmission" class="mt-5 text-left">
         <label class="block text-xs font-semibold text-gray-700 mb-1">Admission Number</label>
-        <input id="admissionInput" type="text" placeholder="e.g. GLB2023001" value="GLB2023001"
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 uppercase font-mono" />
+        <input id="admissionInput" type="text" placeholder="e.g. GLB2023001" 
+          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 uppercase font-mono"
+          onkeydown="if(event.key==='Enter') requestOtp()" />
         <button onclick="requestOtp()" class="w-full mt-3 bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg text-sm font-semibold transition">
-          Generate OTP ➔
+          Send OTP to Email ➔
         </button>
       </div>
 
-      <!-- Step 2: OTP Input Screen -->
-      <div id="stepOtp" class="mt-4 text-left hidden">
-        <!-- Live OTP Alert Box on Screen -->
-        <div class="bg-emerald-50 border border-emerald-300 rounded-lg p-3 text-center mb-3">
-          <p class="text-xs text-emerald-800 font-medium">Aapka OTP generate ho chuka hai:</p>
-          <p id="generatedOtpDisplay" class="text-2xl font-black text-emerald-600 tracking-widest font-mono mt-1 select-all"></p>
+      <!-- Step 2: OTP Input Screen (From Email Only) -->
+      <div id="stepOtp" class="mt-5 text-left hidden">
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 text-center mb-3">
+          <p id="emailSentMsg" class="text-xs text-blue-800 font-medium"></p>
+          <p class="text-[11px] text-gray-500 mt-0.5">Apna Gmail Inbox / Spam folder check karein.</p>
         </div>
 
         <div class="flex justify-between items-center mb-1">
-          <label class="block text-xs font-semibold text-gray-700">Enter Received OTP</label>
+          <label class="block text-xs font-semibold text-gray-700">Enter 6-Digit Email OTP</label>
           <button onclick="backToAdmission()" class="text-[11px] text-blue-600 hover:underline">Change ID</button>
         </div>
         <input id="otpInput" type="text" maxlength="6" placeholder="• • • • • •" 
-          class="w-full text-center tracking-widest text-lg font-bold border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono" />
+          class="w-full text-center tracking-widest text-lg font-bold border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
+          onkeydown="if(event.key==='Enter') submitOtp()" />
         
         <button onclick="submitOtp()" class="w-full mt-3 bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-lg text-sm font-semibold transition">
-          Verify & Enter Campus ➔
+          Verify OTP & Access Map ➔
         </button>
       </div>
 
-      <!-- Error Text -->
-      <p id="authError" class="text-xs text-red-500 mt-2 hidden font-medium"></p>
-      
-      <div class="mt-4 pt-2 border-t text-[11px] text-gray-400">
-        Demo ID: <span class="font-mono font-semibold text-gray-600">GLB2023001</span>
+      <!-- Error Message -->
+      <p id="authError" class="text-xs text-red-500 mt-2.5 hidden font-medium"></p>
+
+      <div class="mt-4 pt-3 border-t text-[11px] text-gray-400">
+        Demo Registered ID: <span class="font-mono font-semibold text-gray-600">GLB2023001</span>
       </div>
     </div>
   </div>
 
-  <!-- Left Sidebar -->
+  <!-- Left Sidebar / Chat & Controls -->
   <div class="w-full md:w-1/3 bg-white flex flex-col border-r shadow-lg h-1/2 md:h-full z-10">
     <div class="p-4 bg-blue-600 text-white flex justify-between items-center shadow-sm">
       <div>
         <h1 class="text-lg font-bold">🧭 AI Campus Guide</h1>
-        <p id="studentBadge" class="text-xs text-blue-100">Guest Mode</p>
+        <p id="studentBadge" class="text-xs text-blue-100">Verification Pending</p>
       </div>
-      <span class="text-xs bg-blue-700 px-2.5 py-1 rounded-full font-medium">Online</span>
+      <span class="text-xs bg-blue-700 px-2.5 py-1 rounded-full font-medium">GL Bajaj</span>
     </div>
 
-    <!-- Chips -->
+    <!-- Quick Location Chips -->
     <div class="p-3 bg-gray-50 border-b flex gap-2 overflow-x-auto text-xs">
       <button onclick="sendQuick('Where is the library?')" class="bg-blue-100 hover:bg-blue-200 text-blue-800 px-3 py-1.5 rounded-full whitespace-nowrap transition">📚 Library</button>
       <button onclick="sendQuick('How to reach the computer lab?')" class="bg-blue-100 hover:bg-blue-200 text-blue-800 px-3 py-1.5 rounded-full whitespace-nowrap transition">💻 CS Lab</button>
       <button onclick="sendQuick('Where is the canteen?')" class="bg-blue-100 hover:bg-blue-200 text-blue-800 px-3 py-1.5 rounded-full whitespace-nowrap transition">🍔 Canteen</button>
+      <button onclick="sendQuick('Where is the placement cell?')" class="bg-blue-100 hover:bg-blue-200 text-blue-800 px-3 py-1.5 rounded-full whitespace-nowrap transition">🏢 Placement</button>
     </div>
 
-    <!-- Chatbox -->
+    <!-- Chat Messages Container -->
     <div id="chatbox" class="flex-1 p-4 overflow-y-auto space-y-3 text-sm">
       <div class="bg-gray-200 text-gray-800 p-3 rounded-xl max-w-[85%] leading-relaxed">
-        Hello! 👋 Verification ke baad kisi bhi building ka naam search karein, map par live route show hoga.
+        Hello! 👋 Email OTP verify hone ke baad aap kisi bhi campus location ko search karein, map par live route ban jayega.
       </div>
     </div>
 
-    <!-- Input -->
+    <!-- Input Box -->
     <div class="p-3 border-t flex gap-2 bg-white">
       <input id="userInput" type="text" placeholder="Search destination (e.g. library)..." class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" onkeydown="if(event.key==='Enter') sendMessage()" />
       <button onclick="sendMessage()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition">Send</button>
     </div>
   </div>
 
-  <!-- Right Map View -->
+  <!-- Right Side / Map View -->
   <div class="w-full md:w-2/3 h-1/2 md:h-full relative">
     <div id="map" class="w-full h-full"></div>
   </div>
@@ -115,7 +119,7 @@
     let isAuthenticated = false;
     let currentAdmissionNo = "";
 
-    // Step 1: Request OTP
+    // Step 1: Request OTP from backend
     async function requestOtp() {
       const input = document.getElementById('admissionInput');
       const errBox = document.getElementById('authError');
@@ -139,9 +143,9 @@
         if (data.success) {
           document.getElementById('stepAdmission').classList.add('hidden');
           document.getElementById('stepOtp').classList.remove('hidden');
-          // Screen par OTP dikhana
-          document.getElementById('generatedOtpDisplay').innerText = data.otp;
-          document.getElementById('otpInput').value = data.otp; // Auto-fill for convenience
+          document.getElementById('emailSentMsg').innerText = data.message;
+          document.getElementById('otpInput').value = ""; // Input blank rahega
+          document.getElementById('otpInput').focus();
         } else {
           errBox.innerText = data.message;
           errBox.classList.remove('hidden');
@@ -152,14 +156,14 @@
       }
     }
 
-    // Step 2: Submit OTP
+    // Step 2: Submit Received Email OTP
     async function submitOtp() {
       const otpInput = document.getElementById('otpInput');
       const errBox = document.getElementById('authError');
       const otp = otpInput.value.trim();
 
-      if (!otp) {
-        errBox.innerText = "Kripya OTP enter karein.";
+      if (otp.length < 6) {
+        errBox.innerText = "Kripya 6-digit OTP enter karein.";
         errBox.classList.remove('hidden');
         return;
       }
@@ -175,14 +179,14 @@
         if (data.success) {
           isAuthenticated = true;
           document.getElementById('loginModal').classList.add('hidden');
-          document.getElementById('studentBadge').innerText = data.student_name;
-          appendMsg(`✅ ${data.message} Aapka Campus Navigator unlock ho gaya hai!`, 'bot');
+          document.getElementById('studentBadge').innerText = `Student: ${data.student_name}`;
+          appendMsg(`✅ ${data.message}! Campus Navigator unlock ho chuka hai.`, 'bot');
         } else {
           errBox.innerText = data.message;
           errBox.classList.remove('hidden');
         }
       } catch (e) {
-        errBox.innerText = "Verification me issue aaya. Dobara try karein.";
+        errBox.innerText = "Verification issue. Dobara try karein.";
         errBox.classList.remove('hidden');
       }
     }
@@ -193,9 +197,9 @@
       document.getElementById('authError').classList.add('hidden');
     }
 
-    // Map & GPS setup
-    let userLat = 28.4728;
-    let userLng = 77.4897;
+    // 1. Campus Default Coordinates (GL Bajaj)
+    let userLat = 28.4727;
+    let userLng = 77.4895;
     let realTimeMarker = null;
     let routingControl = null;
     let activeDestination = null;
@@ -206,6 +210,7 @@
       attribution: '© OpenStreetMap contributors'
     }).addTo(map);
 
+    // 2. Predefined Campus Markers from Backend
     const locations = {{ locations | tojson }};
     for (let key in locations) {
       const loc = locations[key];
@@ -213,6 +218,7 @@
         .bindPopup(`<b>${loc.name}</b><br>${loc.desc || ''}`);
     }
 
+    // 3. Real-Time Continuous GPS Walking Tracker
     if (navigator.geolocation) {
       navigator.geolocation.watchPosition(
         (pos) => {
@@ -231,6 +237,7 @@
             realTimeMarker.setLatLng([userLat, userLng]);
           }
 
+          // Walk karne par rasta recalculate hoga
           if (isAuthenticated && activeDestination && routingControl) {
             routingControl.setWaypoints([
               L.latLng(userLat, userLng),
@@ -238,16 +245,19 @@
             ]);
           }
         },
-        (err) => console.warn("GPS Warning:", err.message),
+        (err) => console.warn("GPS Tracking Warning:", err.message),
         { enableHighAccuracy: true, maximumAge: 1000, timeout: 10000 }
       );
     }
 
+    // 4. Draw Route Function
     function drawRouteTo(destLat, destLng) {
       if (!isAuthenticated) return;
       activeDestination = { lat: destLat, lng: destLng };
 
-      if (routingControl) map.removeControl(routingControl);
+      if (routingControl) {
+        map.removeControl(routingControl);
+      }
 
       routingControl = L.Routing.control({
         waypoints: [
@@ -263,8 +273,13 @@
       }).addTo(map);
     }
 
+    // 5. Chat Engine
     async function sendMessage() {
-      if (!isAuthenticated) return;
+      if (!isAuthenticated) {
+        alert("Pehle email OTP verify karein!");
+        return;
+      }
+
       const input = document.getElementById('userInput');
       const text = input.value.trim();
       if (!text) return;
