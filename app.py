@@ -67,9 +67,31 @@ def home():
     return render_template("index.html", locations=formatted_locations)
 
 @app.route("/send-otp", methods=["POST"])
-def send_otp():
-    data = request.json or {}
-    admission_no = data.get("admission_no", "").strip().upper()
+def send_real_email_otp(recipient_email, student_name, otp):
+    """Port 587 TLS ke sath reliable Gmail sender"""
+    subject = f"Campus Navigator OTP: {otp}"
+    body = f"""Namaste {student_name},
+
+GL Bajaj Campus Guide me login karne ke liye aapka OTP hai:
+
+👉 {otp} 👈
+
+Yeh OTP agle 5 minute tak valid hai.
+
+- AI Campus Guide Team"""
+    
+    msg = MIMEMultipart()
+    msg['From'] = f"GL Bajaj Navigator <{SENDER_EMAIL}>"
+    msg['To'] = recipient_email
+    msg['Subject'] = subject
+    msg.attach(MIMEText(body, 'plain'))
+
+    # Port 587 with STARTTLS (Render par sabse stable chalta hai)
+    server = smtplib.SMTP('smtp.gmail.com', 587, timeout=10)
+    server.starttls()
+    server.login(SENDER_EMAIL, SENDER_APP_PASSWORD.replace(" ", "")) # spaces hata kar login
+    server.sendmail(SENDER_EMAIL, recipient_email, msg.as_string())
+    server.quit()
 
     if admission_no not in STUDENTS_DB:
         return jsonify({"success": False, "message": "Admission Number record me nahi mila! (Use: GLB2023001)"})
