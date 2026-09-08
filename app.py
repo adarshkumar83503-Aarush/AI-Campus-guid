@@ -2,69 +2,93 @@ from flask import Flask, render_template, request, jsonify
 
 app = Flask(__name__)
 
-# Campus Places Database
+# Valid Student Admission Numbers List (College DB)
+# Aap isme apne college ke admission numbers format ke hisab se aur add kar sakte hain
+VALID_STUDENTS = {
+    "2023BT0101": "Rahul Sharma",
+    "2023BT0102": "Aman Verma",
+    "2023BT0103": "Priya Singh",
+    "GLB2023001": "Student 1",
+    "GLB2023002": "Student 2"
+}
+
+# Campus Places Database (GL Bajaj Campus)
 CAMPUS_DATA = {
     "library": {
-        "name": "Central Library",
-        "block": "Block 1 (Academic)",
-        "floor": "3rd Floor",
+        "name": "Central Library (GL Bajaj)",
+        "block": "Main Academic Block",
+        "floor": "Ground / 1st Floor",
         "lat": 28.4728,
         "lng": 77.4897,
-        "indoor": "Main gate se enter karein  sidha jake left len fir right len-> Stairs se 3rd floor -> right turn and left turn ->>> AAP KYA DEKHTE HAIN AAP KI MANJIL 😀 .",
-        "keywords": ["library", "book", "padhne", "study", "kitab"]
+        "indoor": "Main entrance se enter karein -> Right wing corridor -> Central Library.",
+        "keywords": ["library", "book", "padhne", "study", "kitab", "reading room"]
     },
     "canteen": {
-        "name": "Campus Canteen & Cafeteria",
-        "block": "Near Sports Ground",
-        "floor": "2nd Floor",
+        "name": "Campus Cafeteria & Food Court",
+        "block": "Near PGDM / Hostel Area",
+        "floor": "Ground Floor",
         "lat": 28.4722,
         "lng": 77.4892,
-        "indoor": "Basketball court ke saamne seedha entrance hai.",
-        "keywords": ["canteen", "food", "khana", "lunch", "cafeteria", "chai", "coffee"]
+        "indoor": "Academic block ke piche garden area cross karke seedha Canteen entrance hai.",
+        "keywords": ["canteen", "food", "khana", "lunch", "cafeteria", "chai", "nescafe"]
     },
     "lab": {
-        "name": "Computer Labs (IT & CSE)",
-        "block": "Block B",
-        "floor": "3rd Floor",
+        "name": "IT & CSE Computer Labs",
+        "block": "Academic Block",
+        "floor": "2nd & 3rd Floor",
         "lat": 28.4730,
         "lng": 77.4896,
-        "indoor": "Block B lift se 3rd floor jayein -> Lab 304 seedhe hallway me hai.",
-        "keywords": ["lab", "computer", "coding", "it lab", "cs lab", "practical"]
+        "indoor": "Staircase/Lift se 2nd floor jayein -> Lab complex right wing me hai.",
+        "keywords": ["lab", "computer", "coding", "it lab", "cs lab", "practical", "programming"]
     },
     "placement": {
         "name": "Training & Placement Cell (T&P)",
-        "block": "Admin Block",
-        "floor": "1st Floor",
+        "block": "Admin / Main Block",
+        "floor": "Ground Floor",
         "lat": 28.4726,
         "lng": 77.4899,
-        "indoor": "Admin porch se 1st floor stairwell -> Right hand side room 105.",
-        "keywords": ["placement", "job", "interview", "t&p", "internship"]
+        "indoor": "Admin building reception ke paas T&P executive block.",
+        "keywords": ["placement", "job", "interview", "t&p", "internship", "crc"]
     },
     "admin": {
-        "name": "Admin Office & Registrar (Exam Cell)",
-        "block": "Admin Block 1",
+        "name": "Registrar Office & Accounts",
+        "block": "Admin Block",
         "floor": "Ground Floor",
         "lat": 28.4725,
         "lng": 77.4898,
-        "indoor": "Main reception ke bagal me room 004.",
+        "indoor": "Main reception gate se enter karte hi saamne fee counter aur registrar desk hai.",
         "keywords": ["admin", "office", "fee", "fees", "admit card", "exam cell", "registrar"]
     }
 }
 
 @app.route("/")
 def home():
-    # Pass locations so map pins load on start
     formatted_locations = {
         k: {"name": v["name"], "lat": v["lat"], "lng": v["lng"], "desc": f"{v['block']} ({v['floor']})"}
         for k, v in CAMPUS_DATA.items()
     }
     return render_template("index.html", locations=formatted_locations)
 
+@app.route("/login", methods=["POST"])
+def student_login():
+    data = request.json or {}
+    admission_no = data.get("admission_no", "").strip().upper()
+    
+    # Check if exists in valid list OR starts with college prefix pattern (e.g., GLB or 20)
+    if admission_no in VALID_STUDENTS:
+        student_name = VALID_STUDENTS[admission_no]
+        return jsonify({"success": True, "message": f"Welcome, {student_name}!", "admission_no": admission_no})
+    
+    # Generic rule-based fallback check (e.g. GLB followed by numbers or 10-digit admission number)
+    if admission_no.startswith("GLB") and len(admission_no) >= 6:
+        return jsonify({"success": True, "message": f"Welcome Student ({admission_no})!", "admission_no": admission_no})
+
+    return jsonify({"success": False, "message": "Invalid Admission Number! Kripya sahi Admission No. darj karein."})
+
 @app.route("/chat", methods=["POST"])
 def chat():
     user_query = request.json.get("message", "").lower().strip()
     
-    # Keyword search engine
     matched = None
     for key, data in CAMPUS_DATA.items():
         if any(word in user_query for word in data["keywords"]) or key in user_query:
@@ -84,7 +108,7 @@ def chat():
         })
 
     return jsonify({
-        "reply": "Maaf kijiye, ye location database me nahi mili. Aap Library, Canteen, Computer Lab, Admin Office, ya Placement Cell search kar sakte hain.",
+        "reply": "Maaf kijiye, ye jagah campus database me nahi mili. Aap Library, Canteen, Computer Lab, ya Placement Cell try kar sakte hain.",
         "lat": None,
         "lng": None
     })
