@@ -8,14 +8,15 @@ from flask import Flask, render_template, request, jsonify
 app = Flask(__name__)
 
 # Yahan apna Gmail aur 16-digit App Password daalein (Bina space ke ya space ke sath chalega)
-SENDER_EMAIL = "adarshkumar83503@gmail.com"
-SENDER_APP_PASSWORD = "abcd efgh ijkl mnop" 
+SENDER_EMAIL = "sfrl khsi gaso roni"
+SENDER_APP_PASSWORD = "sfrl khsi gaso roni" 
 
 STUDENTS_DB = {
-"25116CN001": {"name": "Adarsh", "email": "adarshkumar83503@gmail.com"},
+   "25116CN001": {"name": "Adarsh", "email": "adarshkumar83503@gmail.com"},
     "25116CN407": {"name": "AKANSHA", "email": "akanshasingh16806@gmail.com"},
-    "25116CN091": {"name": "Aisha", "email": "pandeyaisha829@gmail.com"}    
-    
+    "25116CN091": {"name": "Aisha", "email": "pandeyaisha829@gmail.com"}
+}
+
 OTP_STORE = {}
 
 CAMPUS_DATA = {
