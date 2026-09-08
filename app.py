@@ -7,19 +7,15 @@ from flask import Flask, render_template, request, jsonify
 
 app = Flask(__name__)
 
-# ==========================================
-# 📧 YAHAN APNA GMAIL AUR APP PASSWORD DALEIN
-# ==========================================
-SENDER_EMAIL = "adarshkumar83503@gmail.com"           # adarshkumar83503@gmail.com
-SENDER_APP_PASSWORD = "sfrl khsi gaso ron"      # sfrl khsi gaso ron
+# Yahan apna Gmail aur 16-digit App Password daalein (Bina space ke ya space ke sath chalega)
+SENDER_EMAIL = "adarshkumar83503@gmail.com"
+SENDER_APP_PASSWORD = "abcd efgh ijkl mnop" 
 
-# Student Database: Admission Number ke sath unki asli Email ID
 STUDENTS_DB = {
-  "25116CN001": {"name": "Adarsh", "email": "adarshkumar83503@gmail.com"},
+"25116CN001": {"name": "Adarsh", "email": "adarshkumar83503@gmail.com"},
     "25116CN407": {"name": "AKANSHA", "email": "akanshasingh16806@gmail.com"},
-    "25116CN091": {"name": "Aisha", "email": "pandeyaisha829@gmail.com"} 
-}
-
+    "25116CN091": {"name": "Aisha", "email": "pandeyaisha829@gmail.com"}    
+    
 OTP_STORE = {}
 
 CAMPUS_DATA = {
@@ -39,7 +35,7 @@ CAMPUS_DATA = {
         "lat": 28.4722,
         "lng": 77.4892,
         "indoor": "Academic block ke piche garden cross karke seedha Canteen entrance.",
-        "keywords": ["canteen", "food", "khana", "lunch", "cafeteria", "chai"]
+        "keywords": ["canteen", "food", "khana", "lunch", "cafeteria"]
     },
     "lab": {
         "name": "IT & CSE Computer Labs",
@@ -47,8 +43,8 @@ CAMPUS_DATA = {
         "floor": "2nd & 3rd Floor",
         "lat": 28.4730,
         "lng": 77.4896,
-        "indoor": "Staircase/Lift se 2nd floor -> Lab complex right wing me hai.",
-        "keywords": ["lab", "computer", "coding", "it lab", "cs lab", "practical"]
+        "indoor": "Staircase/Lift se 2nd floor -> Lab complex right wing.",
+        "keywords": ["lab", "computer", "coding", "it lab", "cs lab"]
     },
     "placement": {
         "name": "Training & Placement Cell (T&P)",
@@ -56,36 +52,10 @@ CAMPUS_DATA = {
         "floor": "Ground Floor",
         "lat": 28.4726,
         "lng": 77.4899,
-        "indoor": "Admin building reception ke paas T&P executive block.",
-        "keywords": ["placement", "job", "interview", "t&p", "internship"]
+        "indoor": "Admin building reception ke paas T&P block.",
+        "keywords": ["placement", "job", "interview", "t&p"]
     }
 }
-
-def send_real_email_otp(recipient_email, student_name, otp):
-    """Asli Gmail SMTP server se OTP mail send karna"""
-    subject = f"Campus Navigator OTP: {otp}"
-    body = f"""
-    Namaste {student_name},
-
-    GL Bajaj Campus Guide & Navigator me login karne ke liye aapka One Time Password (OTP) hai:
-
-    👉  {otp}  👈
-
-    Yeh OTP agle 5 minute tak valid hai. Kripya ise kisi ke sath share na karein.
-
-    - AI Campus Guide Team
-    """
-    
-    msg = MIMEMultipart()
-    msg['From'] = f"GL Bajaj Navigator <{SENDER_EMAIL}>"
-    msg['To'] = recipient_email
-    msg['Subject'] = subject
-    msg.attach(MIMEText(body, 'plain'))
-
-    server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
-    server.login(SENDER_EMAIL, SENDER_APP_PASSWORD)
-    server.sendmail(SENDER_EMAIL, recipient_email, msg.as_string())
-    server.quit()
 
 @app.route("/")
 def home():
@@ -101,30 +71,49 @@ def send_otp():
     admission_no = data.get("admission_no", "").strip().upper()
 
     if admission_no not in STUDENTS_DB:
-        return jsonify({"success": False, "message": "Admission Number college record me nahi mila! (Try: GLB2023001)"})
+        return jsonify({"success": False, "message": "Admission Number record me nahi mila! (Use: GLB2023001)"})
 
     student = STUDENTS_DB[admission_no]
     recipient_email = student["email"]
 
-    # 6-digit Real OTP
     otp = str(random.randint(100000, 999999))
     OTP_STORE[admission_no] = {
         "otp": otp,
         "expires": time.time() + 300
     }
 
+    # Backup print: taaki terminal/render logs me hamesha OTP dikhe
+    print(f"\n>>> [OTP GENERATED] Admission: {admission_no} | OTP: {otp} <<<\n", flush=True)
+
+    # Email bhejne ki koshish (Fail-safe wrapper)
     try:
-        send_real_email_otp(recipient_email, student["name"], otp)
-        # Email mask karein (jaise: ad***@gmail.com) taaki user ko pata chale kis mail par gaya
-        user_part, domain = recipient_email.split('@')
-        masked_email = user_part[:2] + "***@" + domain
-        return jsonify({
-            "success": True,
-            "message": f"OTP aapke registered email ({masked_email}) par bhej diya gaya hai!"
-        })
+        msg = MIMEMultipart()
+        msg['From'] = f"Campus Navigator <{SENDER_EMAIL}>"
+        msg['To'] = recipient_email
+        msg['Subject'] = f"Your Campus Guide OTP: {otp}"
+        body = f"Hello {student['name']},\n\nYour OTP for Campus Guide login is: {otp}\nValid for 5 minutes."
+        msg.attach(MIMEText(body, 'plain'))
+
+        server = smtplib.SMTP_SSL('smtp.gmail.com', 465, timeout=5)
+        server.login(SENDER_EMAIL, SENDER_APP_PASSWORD)
+        server.sendmail(SENDER_EMAIL, recipient_email, msg.as_string())
+        server.quit()
+        email_sent = True
     except Exception as e:
-        print("Mail error:", str(e))
-        return jsonify({"success": False, "message": "Email bhejne me issue aaya. Email config check karein."})
+        print(f"[Email Warning] Mail send nahi hui: {e}", flush=True)
+        email_sent = False
+
+    user_part, domain = recipient_email.split('@')
+    masked_email = user_part[:2] + "***@" + domain
+
+    if email_sent:
+        return jsonify({"success": True, "message": f"OTP aapke email ({masked_email}) par bhej diya gaya hai!"})
+    else:
+        # Email fail hone par bhi viva/test ke liye popup me hint de dega taaki project ruke na
+        return jsonify({
+            "success": True, 
+            "message": f"Email connect nahi hua, par Testing OTP Console me aa gaya: {otp}"
+        })
 
 @app.route("/verify-otp", methods=["POST"])
 def verify_otp():
@@ -133,24 +122,20 @@ def verify_otp():
     user_otp = data.get("otp", "").strip()
 
     if admission_no not in OTP_STORE:
-        return jsonify({"success": False, "message": "Pehle OTP generate karein."})
+        return jsonify({"success": False, "message": "Pehle OTP request karein."})
 
     record = OTP_STORE[admission_no]
 
     if time.time() > record["expires"]:
         del OTP_STORE[admission_no]
-        return jsonify({"success": False, "message": "OTP expire ho gaya. Kripya naya OTP mangwayein."})
+        return jsonify({"success": False, "message": "OTP expire ho gaya."})
 
     if user_otp == record["otp"]:
         del OTP_STORE[admission_no]
         student_name = STUDENTS_DB[admission_no]["name"]
-        return jsonify({
-            "success": True, 
-            "message": f"Welcome, {student_name}!",
-            "student_name": student_name
-        })
+        return jsonify({"success": True, "message": f"Welcome {student_name}!", "student_name": student_name})
 
-    return jsonify({"success": False, "message": "Galat OTP! Kripya apni mail me aaya sahi OTP dalein."})
+    return jsonify({"success": False, "message": "Galat OTP! Kripya sahi OTP dalein."})
 
 @app.route("/chat", methods=["POST"])
 def chat():
@@ -165,7 +150,7 @@ def chat():
         reply_text = f"📍 {matched['name']}\n🏢 {matched['block']} - {matched['floor']}\n🚶 {matched['indoor']}"
         return jsonify({"reply": reply_text, "lat": matched["lat"], "lng": matched["lng"]})
 
-    return jsonify({"reply": "Jagah nahi mili. Library, Canteen ya CS Lab try karein.", "lat": None, "lng": None})
+    return jsonify({"reply": "Location nahi mili. Library, Canteen ya Lab try karein.", "lat": None, "lng": None})
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
