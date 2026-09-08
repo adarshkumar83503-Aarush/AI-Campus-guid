@@ -10,36 +10,60 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-  <!-- Leaflet Routing Machine (Route & Turn-by-Turn Directions) -->
+  <!-- Leaflet Routing Machine -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
   <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
 
   <style>
-    /* Routing instructions box styling */
     .leaflet-routing-container {
       background-color: white;
       padding: 10px;
       border-radius: 8px;
       box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-      max-height: 250px;
+      max-height: 220px;
       overflow-y: auto;
       font-size: 12px;
     }
   </style>
 </head>
-<body class="bg-gray-100 h-screen flex flex-col md:flex-row overflow-hidden font-sans">
+<body class="bg-gray-100 h-screen flex flex-col md:flex-row overflow-hidden font-sans relative">
 
-  <!-- Left Sidebar / Chat Assistant -->
+  <!-- Student Login Modal Overlay -->
+  <div id="loginModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 text-center">
+      <div class="w-14 h-14 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl">
+        🎓
+      </div>
+      <h2 class="text-xl font-bold text-gray-800">Student Verification</h2>
+      <p class="text-xs text-gray-500 mt-1">Campus Navigator access karne ke liye apna Admission Number darj karein.</p>
+      
+      <div class="mt-5 text-left">
+        <label class="block text-xs font-semibold text-gray-700 mb-1">Admission Number</label>
+        <input id="admissionInput" type="text" placeholder="e.g. GLB2023001 ya 2023BT0101" 
+          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 uppercase font-mono"
+          onkeydown="if(event.key==='Enter') verifyStudent()" />
+        <p id="loginError" class="text-xs text-red-500 mt-1.5 hidden"></p>
+      </div>
+
+      <button onclick="verifyStudent()" class="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg text-sm font-semibold transition">
+        Verify & Enter Campus
+      </button>
+
+      <p class="text-[11px] text-gray-400 mt-4">Demo Admission Nos: <b>GLB2023001</b>, <b>2023BT0101</b></p>
+    </div>
+  </div>
+
+  <!-- Left Sidebar / Chat & Controls -->
   <div class="w-full md:w-1/3 bg-white flex flex-col border-r shadow-lg h-1/2 md:h-full z-10">
     <div class="p-4 bg-blue-600 text-white flex justify-between items-center shadow-sm">
       <div>
         <h1 class="text-lg font-bold">🧭 AI Campus Guide</h1>
-        <p class="text-xs text-blue-100">Live Campus Navigator</p>
+        <p id="studentBadge" class="text-xs text-blue-100">Guest Mode</p>
       </div>
-      <span class="text-xs bg-blue-700 px-2.5 py-1 rounded-full font-medium">GPS Active</span>
+      <span class="text-xs bg-blue-700 px-2.5 py-1 rounded-full font-medium">Verified</span>
     </div>
 
-    <!-- Quick Buttons -->
+    <!-- Quick Location Chips -->
     <div class="p-3 bg-gray-50 border-b flex gap-2 overflow-x-auto text-xs">
       <button onclick="sendQuick('Where is the library?')" class="bg-blue-100 hover:bg-blue-200 text-blue-800 px-3 py-1.5 rounded-full whitespace-nowrap transition">📚 Library</button>
       <button onclick="sendQuick('How to reach the computer lab?')" class="bg-blue-100 hover:bg-blue-200 text-blue-800 px-3 py-1.5 rounded-full whitespace-nowrap transition">💻 CS Lab</button>
@@ -47,16 +71,16 @@
       <button onclick="sendQuick('Where is the placement cell?')" class="bg-blue-100 hover:bg-blue-200 text-blue-800 px-3 py-1.5 rounded-full whitespace-nowrap transition">🏢 Placement</button>
     </div>
 
-    <!-- Chat Messages -->
+    <!-- Chat Messages Container -->
     <div id="chatbox" class="flex-1 p-4 overflow-y-auto space-y-3 text-sm">
       <div class="bg-gray-200 text-gray-800 p-3 rounded-xl max-w-[85%] leading-relaxed">
-        Hello! 👋 Main aapka AI Campus Guide hoon. Poochiye kahan jana hai, main live route draw kar dunga!
+        Hello! 👋 Admission verify hone ke baad aap kisi bhi location ka live rasta dekh sakte hain.
       </div>
     </div>
 
-    <!-- Input Bar -->
+    <!-- Input Box -->
     <div class="p-3 border-t flex gap-2 bg-white">
-      <input id="userInput" type="text" placeholder="Ask for route (e.g. library)..." class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" onkeydown="if(event.key==='Enter') sendMessage()" />
+      <input id="userInput" type="text" placeholder="Search destination (e.g. library)..." class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" onkeydown="if(event.key==='Enter') sendMessage()" />
       <button onclick="sendMessage()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition">Send</button>
     </div>
   </div>
@@ -67,11 +91,49 @@
   </div>
 
   <script>
-    // 1. Initial coordinates (Campus default)
-    let userLat = 28.4719;
-    let userLng = 77.4900;
-    let userMarker = null;
+    let isAuthenticated = false;
+
+    // Student Login Verification Logic
+    async function verifyStudent() {
+      const input = document.getElementById('admissionInput');
+      const errBox = document.getElementById('loginError');
+      const admNo = input.value.trim();
+
+      if (!admNo) {
+        errBox.innerText = "Kripya Admission Number enter karein.";
+        errBox.classList.remove('hidden');
+        return;
+      }
+
+      try {
+        const res = await fetch('/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ admission_no: admNo })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          isAuthenticated = true;
+          document.getElementById('loginModal').classList.add('hidden');
+          document.getElementById('studentBadge').innerText = `Student: ${data.admission_no}`;
+          appendMsg(`✅ ${data.message}\nAapka campus navigator unlock ho chuka hai!`, 'bot');
+        } else {
+          errBox.innerText = data.message;
+          errBox.classList.remove('hidden');
+        }
+      } catch (err) {
+        errBox.innerText = "Server error. Kripya check karein.";
+        errBox.classList.remove('hidden');
+      }
+    }
+
+    // 1. Campus Default Coordinates (GL Bajaj)
+    let userLat = 28.4727;
+    let userLng = 77.4895;
+    let realTimeMarker = null;
     let routingControl = null;
+    let activeDestination = null;
 
     const map = L.map('map').setView([userLat, userLng], 17);
 
@@ -79,7 +141,7 @@
       attribution: '© OpenStreetMap contributors'
     }).addTo(map);
 
-    // 2. Load predefined campus markers
+    // 2. Predefined Campus Markers
     const locations = {{ locations | tojson }};
     for (let key in locations) {
       const loc = locations[key];
@@ -87,40 +149,50 @@
         .bindPopup(`<b>${loc.name}</b><br>${loc.desc || ''}`);
     }
 
-    // 3. Detect Real User Live Location
+    // 3. Real-Time GPS Tracking
     if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
+      navigator.geolocation.watchPosition(
         (pos) => {
           userLat = pos.coords.latitude;
           userLng = pos.coords.longitude;
 
-          if (userMarker) map.removeLayer(userMarker);
-          userMarker = L.circleMarker([userLat, userLng], {
-            radius: 8,
-            fillColor: "#2563eb",
-            color: "#ffffff",
-            weight: 3,
-            opacity: 1,
-            fillOpacity: 0.9
-          }).addTo(map).bindPopup("📍 <b>Aap Yahan Hain (Start Point)</b>").openPopup();
+          if (!realTimeMarker) {
+            realTimeMarker = L.circleMarker([userLat, userLng], {
+              radius: 9,
+              fillColor: "#2563eb",
+              color: "#ffffff",
+              weight: 3,
+              fillOpacity: 1
+            }).addTo(map).bindPopup("📍 <b>Aap Yahan Hain</b>").openPopup();
+          } else {
+            realTimeMarker.setLatLng([userLat, userLng]);
+          }
 
-          map.setView([userLat, userLng], 17);
+          if (isAuthenticated && activeDestination && routingControl) {
+            routingControl.setWaypoints([
+              L.latLng(userLat, userLng),
+              L.latLng(activeDestination.lat, activeDestination.lng)
+            ]);
+          }
         },
-        (err) => {
-          console.warn("Location permission not granted. Using campus gate as default start point.");
-          userMarker = L.marker([userLat, userLng]).addTo(map).bindPopup("📍 Campus Main Gate (Default Start)");
-        }
+        (err) => console.warn("GPS Tracking Warning:", err.message),
+        { enableHighAccuracy: true, maximumAge: 1000, timeout: 10000 }
       );
     }
 
     // 4. Draw Route Function
     function drawRouteTo(destLat, destLng) {
-      // Remove old route line if exists
+      if (!isAuthenticated) {
+        alert("Pehle apna Admission Number verify karein!");
+        return;
+      }
+
+      activeDestination = { lat: destLat, lng: destLng };
+
       if (routingControl) {
         map.removeControl(routingControl);
       }
 
-      // Add fresh walking route with turn-by-turn steps
       routingControl = L.Routing.control({
         waypoints: [
           L.latLng(userLat, userLng),
@@ -128,14 +200,20 @@
         ],
         routeWhileDragging: false,
         addWaypoints: false,
+        show: true,
         lineOptions: {
           styles: [{ color: '#2563eb', weight: 6, opacity: 0.85 }]
         }
       }).addTo(map);
     }
 
-    // 5. Send Message Logic
+    // 5. Chat Engine
     async function sendMessage() {
+      if (!isAuthenticated) {
+        alert("Pehle Admission Number se login karein!");
+        return;
+      }
+
       const input = document.getElementById('userInput');
       const text = input.value.trim();
       if (!text) return;
@@ -152,12 +230,11 @@
         const data = await res.json();
         appendMsg(data.reply, 'bot');
 
-        // If coordinates found, draw the route line on map
         if (data.lat && data.lng) {
           drawRouteTo(data.lat, data.lng);
         }
       } catch (err) {
-        appendMsg('Server se connect hone me issue aa raha hai.', 'bot');
+        appendMsg('Server connection error.', 'bot');
       }
     }
 
@@ -178,6 +255,4 @@
     }
   </script>
 </body>
-  <!-- Student Login Modal Overlay -->
-<div id="loginModal" ...<!-- Student Login Modal Overlay -->
 </html>
