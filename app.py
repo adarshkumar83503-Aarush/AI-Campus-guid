@@ -8,6 +8,7 @@ VALID_STUDENTS = {
     "25116CN001": "Adarsh dubey",
     "25116CN407": "Akansha Singh",
     "25116CN091": "Aisha pandey",
+    "25116cn029": "Aditya yadav:",
 }
 
 # Campus Places Database (GL Bajaj Campus)
