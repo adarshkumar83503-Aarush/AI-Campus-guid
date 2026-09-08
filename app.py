@@ -6,7 +6,7 @@ app = Flask(__name__)
 
 # Valid Student Database
 STUDENTS_DB = {
-    "25116cn001": {"name": "Adarsh", "email": "adarshkumar83503@gmail.com"},
+    "25116CN001": {"name": "Adarsh", "email": "adarshkumar83503@gmail.com"},
     "2023BT0101": {"name": "Student 2", "email": "student2@glbajaj.org"},
     "GLB001": {"name": "Adarsh", "email": "adarsh@glbajaj.org"}
 }
