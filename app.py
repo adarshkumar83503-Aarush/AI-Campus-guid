@@ -36,7 +36,7 @@ CAMPUS_DATA = {
         "lat": 28.4722,
         "lng": 77.4892,
         "indoor": "Academic block ke piche garden cross karke seedha Canteen entrance.",
-        "keywords": ["canteen", "food", "khana", "lunch", "cafeteria"]
+        "keywords": ["canteen", "food", "khana","khokhaa" "lunch", "cafeteria"]
     },
     "lab": {
         "name": "IT & CSE Computer Labs",
