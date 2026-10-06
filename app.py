@@ -6,8 +6,6 @@ from email.mime.multipart import MIMEMultipart
 from flask import Flask, render_template, request, jsonify
 
 app = Flask(__name__)
-
-# Yahan apna Gmail aur 16-digit App Password daalein (Bina space ke ya space ke sath chalega)
 SENDER_EMAIL = "sfrl khsi gaso roni"
 SENDER_APP_PASSWORD = " sfrl khsi gaso roni " 
 
@@ -82,8 +80,6 @@ def send_otp():
         "otp": otp,
         "expires": time.time() + 300
     }
-
-    # Backup print: taaki terminal/render logs me hamesha OTP dikhe
     print(f"\n>>> [OTP GENERATED] Admission: {admission_no} | OTP: {otp} <<<\n", flush=True)
 
     # Email bhejne ki koshish (Fail-safe wrapper)
@@ -110,7 +106,6 @@ def send_otp():
     if email_sent:
         return jsonify({"success": True, "message": f"OTP aapke email ({masked_email}) par bhej diya gaya hai!"})
     else:
-        # Email fail hone par bhi viva/test ke liye popup me hint de dega taaki project ruke na
         return jsonify({
             "success": True, 
             "message": f"Email connect nahi hua, par Testing OTP Console me aa gaya: {otp}"
