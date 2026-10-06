@@ -81,8 +81,6 @@ def send_otp():
         "expires": time.time() + 300
     }
     print(f"\n>>> [OTP GENERATED] Admission: {admission_no} | OTP: {otp} <<<\n", flush=True)
-
-    # Email bhejne ki koshish (Fail-safe wrapper)
     try:
         msg = MIMEMultipart()
         msg['From'] = f"Campus Navigator <{SENDER_EMAIL}>"
