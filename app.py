@@ -11,7 +11,7 @@ from flask import Flask, render_template, request, jsonify
 app = Flask(__name__)
 
 # ==========================================
-# 📧 EMAIL CONFIGURATION (Gmail App Password)
+# 📧 EMAIL CONFIGURATION
 # ==========================================
 SENDER_EMAIL = "adarshkumar83503@gmail.com"
 SENDER_APP_PASSWORD = "sfrl khsi gaso roni"
@@ -69,7 +69,7 @@ CAMPUS_DATA = {
 }
 
 # ==========================================
-# 🌐 MAIN & MAP ROUTES
+# 🌐 MAIN ROUTE
 # ==========================================
 @app.route("/")
 def home():
@@ -85,7 +85,7 @@ def home():
     return render_template("index.html", locations=formatted_locations)
 
 # ==========================================
-# 🔐 OTP AUTHENTICATION ROUTES
+# 🔐 OTP AUTHENTICATION
 # ==========================================
 @app.route("/send-otp", methods=["POST"])
 def send_otp():
@@ -95,22 +95,22 @@ def send_otp():
     if admission_no not in STUDENTS_DB:
         return jsonify({
             "success": False,
-            "message": "Admission Number record me nahi mila! (Use: 25116CN001)"
+            "message": "Admission Number record me nahi mila! (Registered: 25116CN001)"
         }), 404
 
     student = STUDENTS_DB[admission_no]
     recipient_email = student["email"]
 
-    # 6-digit OTP generation
+    # 6-digit OTP
     otp = str(random.randint(100000, 999999))
     OTP_STORE[admission_no] = {
         "otp": otp,
-        "expires": time.time() + 300  # Valid for 5 minutes
+        "expires": time.time() + 300
     }
 
     print(f"\n>>> [OTP GENERATED] Admission: {admission_no} | OTP: {otp} <<<\n", flush=True)
 
-    # Email bhejne ki koshish (Secure SSL Port 465)
+    # Email bhejne ki koshish (SSL Port 465)
     try:
         msg = MIMEMultipart()
         msg['From'] = SENDER_EMAIL
@@ -126,7 +126,6 @@ Suraksha ke liye ise kisi ke sath share na karein.
 
 Best regards,
 GL Bajaj AI Campus Guide Team"""
-        
         msg.attach(MIMEText(body, 'plain'))
 
         context = ssl.create_default_context()
@@ -140,11 +139,11 @@ GL Bajaj AI Campus Guide Team"""
         })
 
     except Exception as e:
-        print(f"\n[SMTP FAILED] Error: {e}\n", flush=True)
-        # Cloud/Render par port block hone par testing OTP fallback
+        print(f"\n[RENDER SMTP BLOCKED] Testing OTP generated: {otp} | Details: {e}\n", flush=True)
+        # Render cloud environment ke liye clean display
         return jsonify({
             "success": True,
-            "message": f"Email connect nahi hua, par Testing OTP Console me aa gaya: {otp}",
+            "message": f"Demo Mode OTP for Verification: {otp}",
             "fallback_otp": otp
         })
 
@@ -161,7 +160,7 @@ def verify_otp():
 
     if time.time() > record["expires"]:
         del OTP_STORE[admission_no]
-        return jsonify({"success": False, "message": "OTP expire ho chuka hai. Dobara bhejein."}), 400
+        return jsonify({"success": False, "message": "OTP expire ho chuka hai. Dobara try karein."}), 400
 
     if user_otp == record["otp"]:
         del OTP_STORE[admission_no]
@@ -206,7 +205,7 @@ def submit_complaint():
 
     return jsonify({
         "success": True,
-        "message": "Aapki complaint safaltapoorvak darj kar li gayi hai!",
+        "message": "Aapki complaint darj kar li gayi hai!",
         "ticket_id": ticket_id
     })
 
