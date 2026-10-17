@@ -3,347 +3,263 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GL Bajaj CampusGuide | 360° Portal & Simulator</title>
+  <title>GL Bajaj CampusGuide | 360° Live Navigator</title>
 
-  <!-- Tailwind CSS -->
+  <!-- Tailwind CSS & Leaflet -->
   <script src="https://cdn.tailwindcss.com"></script>
-
-  <!-- Leaflet CSS & JS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-  <!-- Google Font -->
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
   <style>
     body { font-family: 'Plus Jakarta Sans', sans-serif; }
-    #map { height: 500px; width: 100%; border-radius: 1.25rem; z-index: 10; }
+    #map { height: calc(100vh - 72px); width: 100%; z-index: 10; }
     
-    /* Walker Simulation Dot */
-    .sim-walker {
-      width: 16px;
-      height: 16px;
-      background: #22c55e;
+    /* Live User Pulsing Location Marker */
+    .user-live-pin {
+      width: 20px;
+      height: 20px;
+      background: #3b82f6;
       border: 3px solid #ffffff;
       border-radius: 50%;
-      box-shadow: 0 0 15px #22c55e;
+      box-shadow: 0 0 0 rgba(59, 130, 246, 0.7);
+      animation: userPulse 1.8s infinite;
     }
-    
-    /* Background Canvas Particle */
-    #particlesCanvas {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      z-index: 1;
+    @keyframes userPulse {
+      0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); }
+      70% { box-shadow: 0 0 0 16px rgba(59, 130, 246, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
     }
   </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col relative selection:bg-blue-600 selection:text-white">
+<body class="bg-slate-950 text-slate-100 flex flex-col h-screen overflow-hidden">
 
-  <!-- ================= TOP HERO BANNER & NAVBAR ================= -->
-  <header class="sticky top-0 z-50 bg-slate-950/85 backdrop-blur-md border-b border-slate-800">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 h-20 flex items-center justify-between">
-      <!-- GL Bajaj Brand Logo & Title -->
-      <div class="flex items-center gap-3">
-        <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-700 to-indigo-500 p-0.5 shadow-lg shadow-blue-600/30">
-          <div class="w-full h-full bg-slate-900 rounded-[14px] flex items-center justify-center font-extrabold text-blue-400 text-xl tracking-wider">
-            GLB
-          </div>
-        </div>
-        <div>
-          <div class="flex items-center gap-2">
-            <h1 class="font-extrabold text-lg sm:text-xl tracking-tight text-white">GL Bajaj <span class="text-blue-500">CampusGuide</span></h1>
-            <span class="text-[10px] bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2 py-0.5 rounded-full font-bold uppercase">v2.0 360°</span>
-          </div>
-          <p class="text-xs text-slate-400">Greater Noida • AKTU Code: 192 • NBA & NAAC A+ Accredited</p>
-        </div>
+  <!-- ================= TOP NAVBAR ================= -->
+  <header class="h-[72px] bg-slate-950/90 backdrop-blur border-b border-slate-800 px-4 md:px-8 flex items-center justify-between z-20">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center font-extrabold text-white text-lg shadow-lg shadow-blue-500/20">
+        GL
       </div>
+      <div>
+        <h1 class="text-sm sm:text-base font-extrabold text-white flex items-center gap-2">
+          GL Bajaj <span class="text-blue-500">CampusGuide</span>
+        </h1>
+        <p class="text-[11px] text-slate-400 hidden sm:block">Greater Noida • Live GPS Dynamic Navigation</p>
+      </div>
+    </div>
 
-      <!-- Navigation Tabs Buttons -->
-      <nav class="hidden md:flex items-center gap-1 bg-slate-900/90 border border-slate-800 p-1.5 rounded-xl">
-        <button onclick="switchTab('explore')" id="tab-btn-explore" class="tab-btn px-4 py-2 text-xs font-semibold rounded-lg bg-blue-600 text-white transition">🧭 Campus Explore</button>
-        <button onclick="switchTab('counselling')" id="tab-btn-counselling" class="tab-btn px-4 py-2 text-xs font-semibold rounded-lg text-slate-400 hover:text-white transition">🎓 Admissions & Predictor</button>
-        <button onclick="switchTab('complaints')" id="tab-btn-complaints" class="tab-btn px-4 py-2 text-xs font-semibold rounded-lg text-slate-400 hover:text-white transition">⚠️ Grievance Cell</button>
-        <button onclick="switchTab('lostfound')" id="tab-btn-lostfound" class="tab-btn px-4 py-2 text-xs font-semibold rounded-lg text-slate-400 hover:text-white transition">🔍 Lost & Found</button>
-        <button onclick="switchTab('clubs')" id="tab-btn-clubs" class="tab-btn px-4 py-2 text-xs font-semibold rounded-lg text-slate-400 hover:text-white transition">🎪 Clubs & Fests</button>
-      </nav>
+    <!-- Actions Right -->
+    <div class="flex items-center gap-2 sm:gap-3">
+      <!-- Live GPS Toggle Button -->
+      <button onclick="requestUserLocation(true)" id="gpsToggleBtn" class="text-xs bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 px-3 py-1.5 rounded-xl font-semibold transition flex items-center gap-1.5 shadow-sm">
+        <span id="gpsPinIcon">📍</span>
+        <span id="gpsPinStatus">Enable My GPS</span>
+      </button>
 
-      <!-- Auth Container -->
-      <div id="authContainer" class="flex items-center gap-2">
-        <button onclick="openLoginModal()" class="text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-xl transition shadow-lg shadow-blue-600/30">
-          Student Login
+      <!-- Grievance Button -->
+      <button onclick="openModal('complaintModal')" class="text-xs bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30 px-3 py-1.5 rounded-xl font-semibold transition flex items-center gap-1.5">
+        <span>⚠️</span>
+        <span class="hidden sm:inline">Report Issue</span>
+      </button>
+
+      <!-- Visitor Gate Pass -->
+      <button onclick="openModal('visitorModal')" class="text-xs bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 border border-purple-500/30 px-3 py-1.5 rounded-xl font-semibold transition flex items-center gap-1.5">
+        <span>🪪</span>
+        <span>Visitor Entry</span>
+      </button>
+
+      <!-- Student Login Button -->
+      <div id="authSlot">
+        <button onclick="openModal('studentModal')" class="text-xs bg-blue-600 hover:bg-blue-500 text-white px-3.5 py-1.5 rounded-xl font-bold transition shadow-lg shadow-blue-600/30 flex items-center gap-1.5">
+          <span>🎓</span>
+          <span>Student Login</span>
         </button>
       </div>
+
+      <!-- Admin Portal -->
+      <a href="/admin" class="text-xs bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 px-3 py-1.5 rounded-xl font-medium transition flex items-center gap-1">
+        <span>🔐</span>
+        <span class="hidden sm:inline">Admin</span>
+      </a>
     </div>
   </header>
 
-  <!-- Mobile Quick Tabs -->
-  <div class="md:hidden flex overflow-x-auto gap-2 p-3 bg-slate-900 border-b border-slate-800 text-xs">
-    <button onclick="switchTab('explore')" class="whitespace-nowrap px-3 py-1.5 bg-blue-600 rounded-lg text-white">🧭 Explore</button>
-    <button onclick="switchTab('counselling')" class="whitespace-nowrap px-3 py-1.5 bg-slate-800 rounded-lg text-slate-300">🎓 Predictor</button>
-    <button onclick="switchTab('complaints')" class="whitespace-nowrap px-3 py-1.5 bg-slate-800 rounded-lg text-slate-300">⚠️ Grievance</button>
-    <button onclick="switchTab('lostfound')" class="whitespace-nowrap px-3 py-1.5 bg-slate-800 rounded-lg text-slate-300">🔍 Lost/Found</button>
-    <button onclick="switchTab('clubs')" class="whitespace-nowrap px-3 py-1.5 bg-slate-800 rounded-lg text-slate-300">🎪 Clubs</button>
+  <!-- ================= MAP & NAVIGATION WRAPPER ================= -->
+  <div class="flex-1 relative flex">
+    <div id="map"></div>
+
+    <!-- Quick Navigation Panel -->
+    <div class="absolute top-4 left-4 z-[400] max-w-xs sm:max-w-sm w-full bg-slate-950/90 backdrop-blur-md p-3.5 rounded-2xl border border-slate-800 shadow-2xl space-y-2 pointer-events-auto">
+      <div class="flex justify-between items-center">
+        <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Tap Destination</span>
+        <span id="originStatusBadge" class="text-[10px] bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2 py-0.5 rounded-full font-semibold">Origin: Gate 1</span>
+      </div>
+      <div class="flex flex-wrap gap-1.5" id="navChips"></div>
+    </div>
+
+    <!-- Active Route Details & Step-by-Step Guide Card -->
+    <div id="routeDetailsCard" class="absolute bottom-6 left-4 right-4 sm:left-auto sm:right-6 sm:w-96 z-[400] bg-slate-900/95 backdrop-blur-lg border border-slate-800 rounded-3xl p-5 shadow-2xl space-y-3 hidden pointer-events-auto">
+      <div class="flex justify-between items-start">
+        <div>
+          <span class="text-[10px] uppercase font-bold text-blue-400 tracking-wider">Live Path Guidance</span>
+          <h4 id="destTitle" class="text-base font-extrabold text-white mt-0.5">Destination</h4>
+        </div>
+        <button onclick="closeRouteCard()" class="text-slate-400 hover:text-white text-sm">✕</button>
+      </div>
+
+      <!-- Metrics: Distance & Walking Time -->
+      <div class="grid grid-cols-2 gap-2 bg-slate-950/60 p-2.5 rounded-2xl border border-slate-800/80">
+        <div>
+          <div class="text-[10px] text-slate-400">Total Distance</div>
+          <div id="distVal" class="text-sm font-bold text-emerald-400 font-mono">-- m</div>
+        </div>
+        <div>
+          <div class="text-[10px] text-slate-400">Estimated Walking Time</div>
+          <div id="timeVal" class="text-sm font-bold text-blue-400 font-mono">-- mins</div>
+        </div>
+      </div>
+
+      <!-- Step-by-Step Directions Text -->
+      <div class="space-y-1.5">
+        <div class="text-[11px] font-bold text-slate-300">Walking Direction Guide:</div>
+        <p id="guideText" class="text-xs text-slate-400 leading-relaxed bg-slate-800/50 p-3 rounded-xl border border-slate-700/50">
+          Select destination to compute path...
+        </p>
+      </div>
+    </div>
   </div>
 
-  <!-- Hero Visuals Section -->
-  <section class="relative bg-gradient-to-b from-blue-950/40 via-slate-950 to-slate-950 py-10 px-4 sm:px-6 overflow-hidden border-b border-slate-800/80">
-    <canvas id="particlesCanvas"></canvas>
-    <div class="max-w-7xl mx-auto relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
-      <div class="space-y-4 max-w-2xl">
-        <div class="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 px-3.5 py-1.5 rounded-full text-xs text-blue-300 font-semibold">
-          🚀 India's Top Ranked Innovation Campus
-        </div>
-        <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white leading-tight">
-          Explore, Navigate & Experience <span class="bg-gradient-to-r from-blue-400 via-indigo-300 to-sky-300 bg-clip-text text-transparent">GL Bajaj Campus</span>
-        </h2>
-        <p class="text-sm text-slate-400 leading-relaxed">
-          Integrated smart student dashboard: Real-time route walk simulator, admission rank predictor, fast-track grievance redressal and campus life network.
-        </p>
-        <div class="flex flex-wrap gap-3 pt-2">
-          <button onclick="switchTab('explore')" class="bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs px-5 py-3 rounded-xl transition shadow-lg shadow-blue-600/30">
-            Launch Campus Simulator →
-          </button>
-          <button onclick="switchTab('counselling')" class="bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 font-bold text-xs px-5 py-3 rounded-xl transition">
-            Check Cutoffs & Predict Branch
-          </button>
-        </div>
-      </div>
-
-      <!-- Campus Visual Card -->
-      <div class="w-full md:w-96 bg-slate-900/90 border border-slate-800 rounded-3xl p-4 shadow-2xl backdrop-blur relative overflow-hidden group">
-        <div class="h-48 rounded-2xl overflow-hidden relative">
-          <img src="https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=800&auto=format&fit=crop&q=80" alt="Campus Building" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
-          <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent"></div>
-          <span class="absolute bottom-3 left-3 text-xs bg-blue-600 text-white px-2.5 py-1 rounded-md font-bold">Main Block AB-1</span>
-        </div>
-        <div class="mt-4 flex justify-between items-center text-xs text-slate-400">
-          <span>📍 Knowledge Park III, Greater Noida</span>
-          <span class="text-emerald-400 font-semibold">Campus Open</span>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ================= MAIN CONTENT WRAPPER (TABS) ================= -->
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-8 flex-1 w-full">
-
-    <!-- 1. TAB: CAMPUS EXPLORE & SIMULATION -->
-    <div id="tab-explore" class="tab-content space-y-6">
-      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h3 class="text-xl font-bold text-white flex items-center gap-2">
-            <span>🧭</span> Interactive 3D Pathway & Walk Simulator
-          </h3>
-          <p class="text-xs text-slate-400">Select any campus destination to simulate walking directions from Gate 1.</p>
-        </div>
-        <div class="flex items-center gap-2">
-          <button onclick="startSimulation()" id="simBtn" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-4 py-2 rounded-xl transition shadow flex items-center gap-2">
-            <span>▶</span> Start Walk Simulation
-          </button>
-        </div>
-      </div>
-
-      <!-- Map & Destinations Panel -->
-      <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <!-- Sidebar Selection -->
-        <div class="lg:col-span-1 space-y-3">
-          <div class="text-xs font-bold text-slate-400 uppercase tracking-wider">Campus Locations</div>
-          <div class="space-y-2 max-h-[460px] overflow-y-auto pr-1" id="locationCards"></div>
-        </div>
-
-        <!-- Map Container -->
-        <div class="lg:col-span-3 bg-slate-900 p-3 rounded-2xl border border-slate-800 shadow-xl relative">
-          <div id="map"></div>
-          <!-- Simulation Status Badge -->
-          <div id="simStatus" class="absolute bottom-6 left-6 z-[400] bg-slate-950/90 border border-slate-700 px-4 py-2 rounded-xl text-xs flex items-center gap-2 shadow-2xl hidden">
-            <span class="w-3 h-3 rounded-full bg-emerald-500 animate-ping"></span>
-            <span id="simStatusText" class="font-medium text-slate-200">Simulating walk...</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 2. TAB: ADMISSIONS & COUNSELLING PREDICTOR -->
-    <div id="tab-counselling" class="tab-content hidden space-y-6">
-      <div class="bg-gradient-to-r from-blue-950/50 to-indigo-950/50 border border-blue-900/50 p-6 rounded-3xl space-y-4">
-        <h3 class="text-2xl font-extrabold text-white">GL Bajaj College & Cutoff Predictor 2026</h3>
-        <p class="text-sm text-slate-300">
-          Apni JEE Main CRL Rank ya CUET/UPTAC Rank daalkar check karein ki GL Bajaj Institute of Technology & Management me aapko kaunsi branch mil sakti hai.
-        </p>
-
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
-          <div>
-            <label class="block text-xs font-bold text-slate-400 mb-1">Your All India / CRL Rank</label>
-            <input id="predRank" type="number" placeholder="e.g. 110000" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl text-sm text-white font-mono outline-none focus:ring-2 focus:ring-blue-500">
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-slate-400 mb-1">Category</label>
-            <select id="predCat" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl text-sm text-white outline-none focus:ring-2 focus:ring-blue-500">
-              <option value="General">General / OPEN</option>
-              <option value="EWS">GEN-EWS</option>
-              <option value="OBC">OBC-NCL</option>
-              <option value="SC">SC / ST</option>
-            </select>
-          </div>
-          <div class="flex items-end">
-            <button onclick="runAdmissionPredictor()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold p-3 rounded-xl text-sm transition shadow-lg shadow-blue-600/30">
-              Predict My Branches 🎯
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Result Container -->
-      <div id="predictorResult" class="hidden space-y-3">
-        <h4 id="predSummary" class="text-sm font-bold text-slate-300"></h4>
-        <div id="predCards" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4"></div>
-      </div>
-    </div>
-
-    <!-- 3. TAB: GRIEVANCE / COMPLAINTS CELL -->
-    <div id="tab-complaints" class="tab-content hidden space-y-6">
-      <div class="max-w-2xl mx-auto bg-slate-900 border border-slate-800 p-8 rounded-3xl shadow-2xl space-y-5">
-        <div>
-          <h3 class="text-xl font-bold text-white flex items-center gap-2">
-            <span>⚠️</span> Student Grievance & Issue Portal
-          </h3>
-          <p class="text-xs text-slate-400">Campus facilities, labs ya network issue direct administration tak pahunchayein.</p>
-        </div>
-
-        <div class="space-y-4">
-          <div>
-            <label class="block text-xs font-semibold text-slate-400 mb-1">Issue Category</label>
-            <select id="cmpCategory" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-sm text-white outline-none">
-              <option value="Lab & Hardware">Lab / Broken Computers / Internet</option>
-              <option value="Campus Facilities">Electricity / AC / Water Cooler</option>
-              <option value="Cleanliness">Hygiene & Washrooms</option>
-              <option value="Navigation & Map">Campus Map Route Error</option>
-              <option value="Other">Other Query</option>
-            </select>
-          </div>
-
-          <div>
-            <label class="block text-xs font-semibold text-slate-400 mb-1">Location in Campus</label>
-            <input id="cmpLocation" type="text" placeholder="e.g. AB-2, 3rd Floor, Room 304" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-sm text-white outline-none">
-          </div>
-
-          <div>
-            <label class="block text-xs font-semibold text-slate-400 mb-1">Detailed Description</label>
-            <textarea id="cmpDesc" rows="4" placeholder="Apni pareshani ka vivaran likhein..." class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-sm text-white outline-none"></textarea>
-          </div>
-        </div>
-
-        <p id="cmpStatus" class="text-xs font-bold hidden"></p>
-
-        <button onclick="submitComplaint()" class="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold p-3.5 rounded-xl text-sm transition">
-          Submit Official Grievance Ticket
-        </button>
-      </div>
-    </div>
-
-    <!-- 4. TAB: LOST & FOUND -->
-    <div id="tab-lostfound" class="tab-content hidden space-y-6">
-      <div class="flex justify-between items-center">
-        <div>
-          <h3 class="text-xl font-bold text-white flex items-center gap-2">
-            <span>🔍</span> Campus Lost & Found Bulletin
-          </h3>
-          <p class="text-xs text-slate-400">Report or recover misplaced belongings inside the college premises.</p>
-        </div>
-        <button onclick="openLostFoundModal()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition shadow">
-          + Post New Item
-        </button>
-      </div>
-
-      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4" id="lostFoundCards">
-        {% for item in lost_items %}
-        <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-3">
-          <div class="flex justify-between items-center">
-            <span class="text-[10px] font-bold uppercase px-2.5 py-1 rounded-full 
-              {% if item.type == 'Lost' %} bg-red-500/10 text-red-400 border border-red-500/20 {% else %} bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 {% endif %}">
-              {{ item.type }}
-            </span>
-            <span class="text-xs text-slate-500 font-mono">{{ item.date }}</span>
-          </div>
-          <h4 class="font-bold text-base text-white">{{ item.title }}</h4>
-          <p class="text-xs text-slate-400">📍 {{ item.location }}</p>
-          <div class="text-xs bg-slate-950 p-2.5 rounded-lg border border-slate-800 text-blue-300 font-mono">
-            📞 {{ item.contact }}
-          </div>
-        </div>
-        {% endfor %}
-      </div>
-    </div>
-
-    <!-- 5. TAB: CLUBS & EVENTS -->
-    <div id="tab-clubs" class="tab-content hidden space-y-6">
-      <div>
-        <h3 class="text-xl font-bold text-white flex items-center gap-2">
-          <span>🎪</span> Student Societies, Fests & Tech Clubs
-        </h3>
-        <p class="text-xs text-slate-400">Connect with active campus chapters and annual cultural events.</p>
-      </div>
-
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {% for club in clubs %}
-        <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl flex flex-col justify-between space-y-3">
-          <div class="space-y-1.5">
-            <span class="text-[10px] bg-blue-500/10 text-blue-400 border border-blue-500/20 font-bold px-2 py-0.5 rounded-full uppercase">{{ club.tag }}</span>
-            <h4 class="text-lg font-bold text-white">{{ club.name }}</h4>
-            <p class="text-xs text-slate-400 leading-relaxed">{{ club.desc }}</p>
-          </div>
-          <div>
-            <button class="text-xs text-blue-400 hover:text-blue-300 font-semibold">Join Society Chapter →</button>
-          </div>
-        </div>
-        {% endfor %}
-      </div>
-    </div>
-  </main>
-
-  <!-- ================= STUDENT LOGIN MODAL ================= -->
-  <div id="loginModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+  <!-- ================= 🎓 STUDENT LOGIN MODAL ================= -->
+  <div id="studentModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
     <div class="bg-slate-900 border border-slate-800 p-6 rounded-3xl max-w-sm w-full space-y-4">
       <div class="flex justify-between items-center">
-        <h3 class="font-bold text-base text-white">Student Portal Login</h3>
-        <button onclick="closeLoginModal()" class="text-slate-400 hover:text-white">✕</button>
+        <div>
+          <h3 class="font-bold text-base text-white">Student Portal Login</h3>
+          <p class="text-xs text-slate-400">Admission No. daal kar OTP se verify karein</p>
+        </div>
+        <button onclick="closeModal('studentModal')" class="text-slate-400 hover:text-white">✕</button>
       </div>
 
-      <div id="loginStep1" class="space-y-3">
+      <div id="stdStep1" class="space-y-3">
         <div>
           <label class="block text-xs text-slate-400 mb-1">Admission Number</label>
-          <input id="inputAdm" type="text" placeholder="25116CN001" class="w-full bg-slate-800 border border-slate-700 p-2.5 rounded-xl text-sm font-mono uppercase text-white outline-none">
+          <input id="stdAdm" type="text" placeholder="e.g. 25116CN001" class="w-full bg-slate-800 border border-slate-700 p-2.5 rounded-xl text-sm font-mono uppercase text-white outline-none focus:ring-1 focus:ring-blue-500">
         </div>
-        <button onclick="requestOtp()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold p-2.5 rounded-xl text-sm transition">Send Verification OTP</button>
+        <button onclick="requestStudentOtp()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold p-2.5 rounded-xl text-sm transition">
+          Send Email OTP
+        </button>
       </div>
 
-      <div id="loginStep2" class="space-y-3 hidden">
-        <p id="otpMsg" class="text-xs bg-slate-800 p-2.5 rounded-xl text-amber-300 font-mono text-center"></p>
-        <input id="inputOtp" type="text" placeholder="• • • • • •" class="w-full bg-slate-800 border border-slate-700 p-2.5 rounded-xl text-center text-lg font-mono text-white outline-none">
-        <button onclick="verifyOtp()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold p-2.5 rounded-xl text-sm transition">Verify & Unlock</button>
+      <div id="stdStep2" class="space-y-3 hidden">
+        <div id="stdOtpMsg" class="text-xs bg-slate-800 p-2.5 rounded-xl text-amber-300 font-mono text-center"></div>
+        <div>
+          <label class="block text-xs text-slate-400 mb-1">Enter 6-Digit OTP</label>
+          <input id="stdOtp" type="text" placeholder="• • • • • •" class="w-full bg-slate-800 border border-slate-700 p-2.5 rounded-xl text-center text-lg font-mono text-white outline-none">
+        </div>
+        <button onclick="verifyStudentOtp()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold p-2.5 rounded-xl text-sm transition">
+          Verify & Access
+        </button>
       </div>
 
-      <p id="loginError" class="text-xs text-red-400 text-center hidden"></p>
+      <p id="stdErr" class="text-xs text-red-400 text-center hidden"></p>
     </div>
   </div>
 
-  <!-- ================= POST LOST ITEM MODAL ================= -->
-  <div id="lostModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
-    <div class="bg-slate-900 border border-slate-800 p-6 rounded-3xl max-w-sm w-full space-y-3">
-      <h3 class="font-bold text-base text-white">Post Item to Bulletin</h3>
-      <select id="lfType" class="w-full bg-slate-800 border border-slate-700 p-2 text-xs rounded-xl text-white outline-none">
-        <option value="Lost">Lost (Meri cheez kho gayi)</option>
-        <option value="Found">Found (Mujhe kisi ki cheez mili)</option>
-      </select>
-      <input id="lfTitle" type="text" placeholder="Item Name (e.g. Blue HP Pen Drive)" class="w-full bg-slate-800 border border-slate-700 p-2 text-xs rounded-xl text-white outline-none">
-      <input id="lfLoc" type="text" placeholder="Location (e.g. Ground Floor AB-2)" class="w-full bg-slate-800 border border-slate-700 p-2 text-xs rounded-xl text-white outline-none">
-      <input id="lfContact" type="text" placeholder="Your Phone or Email" class="w-full bg-slate-800 border border-slate-700 p-2 text-xs rounded-xl text-white outline-none">
-      <button onclick="submitLostItem()" class="w-full bg-blue-600 p-2.5 rounded-xl text-xs font-bold text-white">Post to Bulletin</button>
-      <button onclick="document.getElementById('lostModal').classList.add('hidden')" class="w-full text-xs text-slate-500">Cancel</button>
+  <!-- ================= 🪪 VISITOR REGISTRATION MODAL ================= -->
+  <div id="visitorModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-slate-900 border border-slate-800 p-6 rounded-3xl max-w-md w-full space-y-4">
+      <div class="flex justify-between items-center pb-2 border-b border-slate-800">
+        <div>
+          <h3 class="font-bold text-base text-white flex items-center gap-1.5">
+            <span>🪪</span> Visitor Registration & Gate Pass
+          </h3>
+          <p class="text-xs text-slate-400">Campus security check-in pass generate karein</p>
+        </div>
+        <button onclick="closeModal('visitorModal')" class="text-slate-400 hover:text-white">✕</button>
+      </div>
+
+      <div id="visStep1" class="space-y-3">
+        <div>
+          <label class="block text-xs text-slate-400 mb-1">Full Name</label>
+          <input id="visName" type="text" placeholder="e.g. Rahul Sharma" class="w-full bg-slate-800 border border-slate-700 p-2.5 rounded-xl text-sm text-white outline-none">
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">Mobile Number</label>
+            <input id="visMobile" type="tel" maxlength="10" placeholder="10-digit number" class="w-full bg-slate-800 border border-slate-700 p-2.5 rounded-xl text-sm text-white outline-none font-mono">
+          </div>
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">Govt ID / Aadhaar</label>
+            <input id="visAadhaar" type="text" maxlength="12" placeholder="12-digit number" class="w-full bg-slate-800 border border-slate-700 p-2.5 rounded-xl text-sm text-white outline-none font-mono">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs text-slate-400 mb-1">Purpose of Visit (Kyon visit kiya?)</label>
+          <select id="visPurpose" class="w-full bg-slate-800 border border-slate-700 p-2.5 rounded-xl text-sm text-white outline-none">
+            <option value="Admission Enquiry / Counselling">Admission Enquiry / Counselling</option>
+            <option value="Parent Teacher Meeting / Visit">Parent / Guardian Visit</option>
+            <option value="Guest Lecture / Placement / Company">Guest / Company Placement</option>
+            <option value="Campus Fest / Event Guest">Campus Fest / Event Attendee</option>
+            <option value="Vendor / Delivery / Other">Vendor / Delivery / Maintenance</option>
+          </select>
+        </div>
+
+        <button onclick="requestVisitorOtp()" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold p-3 rounded-xl text-sm transition">
+          Generate Verification OTP
+        </button>
+      </div>
+
+      <div id="visStep2" class="space-y-3 hidden">
+        <div id="visOtpNotice" class="text-xs bg-slate-800 p-2.5 rounded-xl text-purple-300 font-mono text-center"></div>
+        <div>
+          <label class="block text-xs text-slate-400 mb-1">Enter Verification OTP</label>
+          <input id="visOtp" type="text" placeholder="• • • • • •" class="w-full bg-slate-800 border border-slate-700 p-2.5 rounded-xl text-center text-lg font-mono text-white outline-none">
+        </div>
+        <button onclick="verifyVisitorOtp()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold p-3 rounded-xl text-sm transition">
+          Confirm Entry & Generate Pass
+        </button>
+      </div>
+
+      <p id="visErr" class="text-xs text-red-400 text-center hidden"></p>
+    </div>
+  </div>
+
+  <!-- ================= ⚠️ COMPLAINT MODAL ================= -->
+  <div id="complaintModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-slate-900 border border-slate-800 p-6 rounded-3xl max-w-md w-full space-y-3">
+      <div class="flex justify-between items-center pb-2 border-b border-slate-800">
+        <h3 class="font-bold text-base text-white">Campus Grievance Redressal</h3>
+        <button onclick="closeModal('complaintModal')" class="text-slate-400 hover:text-white">✕</button>
+      </div>
+
+      <div>
+        <label class="block text-xs text-slate-400 mb-1">Category</label>
+        <select id="cmpCat" class="w-full bg-slate-800 border border-slate-700 p-2 rounded-xl text-sm text-white outline-none">
+          <option value="Campus Facilities">Campus Facilities (Water / AC / Electricity)</option>
+          <option value="Lab & Hardware">Lab / Broken Computers / Internet</option>
+          <option value="Cleanliness">Cleanliness & Hygiene</option>
+          <option value="Navigation Route">Map Route Bug</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-xs text-slate-400 mb-1">Location / Classroom</label>
+        <input id="cmpLoc" type="text" placeholder="e.g. AB-2, 2nd Floor, Room 204" class="w-full bg-slate-800 border border-slate-700 p-2 rounded-xl text-sm text-white outline-none">
+      </div>
+
+      <div>
+        <label class="block text-xs text-slate-400 mb-1">Problem Description</label>
+        <textarea id="cmpDesc" rows="3" placeholder="Samasya ka vivaran..." class="w-full bg-slate-800 border border-slate-700 p-2 rounded-xl text-sm text-white outline-none"></textarea>
+      </div>
+
+      <p id="cmpStatus" class="text-xs font-bold hidden"></p>
+
+      <div class="flex justify-end gap-2 pt-2 border-t border-slate-800">
+        <button onclick="closeModal('complaintModal')" class="px-3 py-1.5 border border-slate-700 rounded-xl text-xs text-slate-400">Cancel</button>
+        <button onclick="submitGrievance()" class="px-4 py-1.5 bg-blue-600 hover:bg-blue-500 rounded-xl text-xs font-bold text-white">Submit Ticket</button>
+      </div>
     </div>
   </div>
 
@@ -351,135 +267,274 @@
   <script>
     const LOCATIONS = {{ locations|tojson }};
     const MAIN_GATE = [28.4738, 77.4882];
-    let selectedDest = LOCATIONS['ab2'];
-    let routeLine = null;
-    let walkerMarker = null;
-    let simInterval = null;
-    let loggedInStudent = null;
+    
+    let userCurrentCoords = null; // [lat, lng]
+    let userMarker = null;
+    let userAccuracyCircle = null;
+    let routePolyline = null;
+    let activeDestData = null;
+    let activeUser = null;
 
-    // 1. Tab Switching
-    function switchTab(tabId) {
-      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-      document.getElementById('tab-' + tabId).classList.remove('hidden');
-
-      document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.classList.remove('bg-blue-600', 'text-white');
-        btn.classList.add('text-slate-400');
-      });
-      const activeBtn = document.getElementById('tab-btn-' + tabId);
-      if(activeBtn) {
-        activeBtn.classList.add('bg-blue-600', 'text-white');
-        activeBtn.classList.remove('text-slate-400');
-      }
-
-      if (tabId === 'explore') {
-        setTimeout(() => map.invalidateSize(), 200);
-      }
-    }
-
-    // 2. Leaflet Map Setup
+    // 1. Initialize Map
     const map = L.map('map').setView([28.4728, 77.4897], 18);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
 
-    L.marker(MAIN_GATE).addTo(map).bindPopup("<b>📍 Gate 1 (Main Entrance)</b>");
+    // Gate 1 Marker
+    L.marker(MAIN_GATE).addTo(map).bindPopup("<b>📍 Gate 1 (Campus Main Entrance)</b>");
 
-    // Populate Sidebar Cards & Map Markers
-    const cardsBox = document.getElementById('locationCards');
+    // 2. Geolocation Request & Tracking
+    function requestUserLocation(manualClick = false) {
+      if (!navigator.geolocation) {
+        if (manualClick) alert("Aapke browser me Geolocation support nahi hai.");
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+          const accuracy = position.coords.accuracy;
+          userCurrentCoords = [lat, lng];
+
+          // Update UI Status
+          document.getElementById('gpsPinIcon').innerText = "🟢";
+          document.getElementById('gpsPinStatus').innerText = "Live Location Active";
+          document.getElementById('originStatusBadge').innerText = "Origin: Your Live Location 📍";
+          document.getElementById('originStatusBadge').className = "text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full font-semibold";
+
+          // Add / Update User Marker on Map
+          const userPinIcon = L.divIcon({ className: 'user-live-pin', iconSize: [20, 20], iconAnchor: [10, 10] });
+
+          if (!userMarker) {
+            userMarker = L.marker([lat, lng], { icon: userPinIcon }).addTo(map);
+            userMarker.bindPopup("<b>📍 You Are Here!</b><br><small>Live GPS Location active</small>").openPopup();
+            userAccuracyCircle = L.circle([lat, lng], { radius: accuracy, color: '#3b82f6', weight: 1, opacity: 0.3, fillOpacity: 0.08 }).addTo(map);
+          } else {
+            userMarker.setLatLng([lat, lng]);
+            userAccuracyCircle.setLatLng([lat, lng]);
+            userAccuracyCircle.setRadius(accuracy);
+          }
+
+          map.flyTo([lat, lng], 19, { animate: true });
+
+          // Re-draw route if destination was already selected
+          if (activeDestData) {
+            navigateTo(activeDestData.lat, activeDestData.lng, activeDestData.name, activeDestData.desc);
+          }
+        },
+        (error) => {
+          console.warn("Location error:", error.message);
+          if (manualClick) {
+            alert("Location access block hai. Kripya browser URL bar me lock icon 🔒 click karke Location ko 'Allow' karein.");
+          }
+        },
+        { enableHighAccuracy: true, timeout: 8000 }
+      );
+    }
+
+    // Auto prompt location on page load
+    window.addEventListener('load', () => {
+      requestUserLocation(false);
+    });
+
+    // 3. Haversine Distance Formula (Meters)
+    function calculateDistance(coord1, coord2) {
+      const R = 6371e3; // Earth radius in meters
+      const φ1 = coord1[0] * Math.PI / 180;
+      const φ2 = coord2[0] * Math.PI / 180;
+      const Δφ = (coord2[0] - coord1[0]) * Math.PI / 180;
+      const Δλ = (coord2[1] - coord1[1]) * Math.PI / 180;
+
+      const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+                Math.cos(φ1) * Math.cos(φ2) *
+                Math.sin(Δλ/2) * Math.sin(Δλ/2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      return Math.round(R * c);
+    }
+
+    // 4. Dynamic Path & Text Guide Navigation
+    function navigateTo(destLat, destLng, name, desc) {
+      activeDestData = { lat: destLat, lng: destLng, name: name, desc: desc };
+
+      if (routePolyline) map.removeLayer(routePolyline);
+
+      // Origin point: Live location if available, else Main Gate
+      const startPoint = userCurrentCoords ? userCurrentCoords : MAIN_GATE;
+      const isLive = !!userCurrentCoords;
+
+      // Realistic path intermediate midpoint
+      const midPoint = [(startPoint[0] + destLat) / 2, (startPoint[1] + destLng) / 2];
+      const routePoints = [startPoint, midPoint, [destLat, destLng]];
+
+      routePolyline = L.polyline(routePoints, {
+        color: '#2563eb',
+        weight: 6,
+        dashArray: '8, 8',
+        opacity: 0.95
+      }).addTo(map);
+
+      map.fitBounds(routePolyline.getBounds(), { padding: [60, 60] });
+
+      // Calculate Metrics
+      const totalDist = calculateDistance(startPoint, [destLat, destLng]);
+      const walkingMins = Math.max(1, Math.round(totalDist / 75)); // ~75 meters/min walking speed
+
+      // Update Guidance Card
+      document.getElementById('routeDetailsCard').classList.remove('hidden');
+      document.getElementById('destTitle').innerText = name;
+      document.getElementById('distVal').innerText = totalDist >= 1000 ? `${(totalDist/1000).toFixed(2)} km` : `${totalDist} meters`;
+      document.getElementById('timeVal').innerText = `~${walkingMins} mins walk`;
+
+      // Step-by-step Text Guide generator
+      let stepGuide = "";
+      if (isLive) {
+        stepGuide = `1. Start walking from your current location towards central paved road.<br>` +
+                    `2. Walk straight ~${Math.round(totalDist * 0.6)}m towards academic central lawn.<br>` +
+                    `3. Turn towards ${name} entrance -> Follow signage for ${desc}.`;
+      } else {
+        stepGuide = `1. Start at Gate 1 (Main Entrance).<br>` +
+                    `2. Take main center avenue walkway past the fountain area (~${Math.round(totalDist * 0.5)}m).<br>` +
+                    `3. Arrive at ${name} (${desc}).`;
+      }
+      document.getElementById('guideText').innerHTML = stepGuide;
+
+      // Destination Popup
+      L.popup().setLatLng([destLat, destLng])
+        .setContent(`<b>${name}</b><br><small style="color:#64748b;">${desc}</small><div style="margin-top:6px; color:#2563eb; font-weight:bold; font-size:11px;">🚶 ${totalDist}m (~${walkingMins} min) from ${isLive ? 'Your Location' : 'Gate 1'}</div>`)
+        .openOn(map);
+    }
+
+    function closeRouteCard() {
+      document.getElementById('routeDetailsCard').classList.add('hidden');
+    }
+
+    // Populate Navigation Chips & Markers
+    const chipsBox = document.getElementById('navChips');
     for (let k in LOCATIONS) {
       let loc = LOCATIONS[k];
       let m = L.marker([loc.lat, loc.lng]).addTo(map);
       m.bindPopup(`<b>${loc.name}</b><br><small>${loc.desc}</small>`);
-      m.on('click', () => selectDestination(loc));
+      m.on('click', () => navigateTo(loc.lat, loc.lng, loc.name, loc.desc));
 
-      let card = document.createElement('div');
-      card.className = "bg-slate-900 border border-slate-800 p-3 rounded-xl cursor-pointer hover:border-blue-500 transition";
-      card.innerHTML = `<h5 class="text-xs font-bold text-white">${loc.name}</h5><p class="text-[11px] text-slate-400">${loc.desc}</p>`;
-      card.onclick = () => selectDestination(loc);
-      cardsBox.appendChild(card);
+      let b = document.createElement('button');
+      b.className = "text-xs bg-slate-900 hover:bg-slate-800 border border-slate-700 px-2.5 py-1 rounded-xl text-slate-200 transition";
+      b.innerText = loc.name.split('(')[0].trim();
+      b.onclick = () => navigateTo(loc.lat, loc.lng, loc.name, loc.desc);
+      chipsBox.appendChild(b);
     }
 
-    function selectDestination(loc) {
-      selectedDest = loc;
-      if (routeLine) map.removeLayer(routeLine);
-      if (walkerMarker) map.removeLayer(walkerMarker);
-      if (simInterval) clearInterval(simInterval);
+    // Modal Helpers
+    function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
-      const mid = [(MAIN_GATE[0] + loc.lat) / 2, (MAIN_GATE[1] + loc.lng) / 2];
-      routeLine = L.polyline([MAIN_GATE, mid, [loc.lat, loc.lng]], {
-        color: '#3b82f6', weight: 6, dashArray: '8, 8', opacity: 0.9
-      }).addTo(map);
+    // 5. Student Auth
+    let tempStudentAdm = "";
+    async function requestStudentOtp() {
+      const adm = document.getElementById('stdAdm').value.trim().toUpperCase();
+      const err = document.getElementById('stdErr');
+      err.classList.add('hidden');
 
-      map.fitBounds(routeLine.getBounds(), { padding: [40, 40] });
-      L.popup().setLatLng([loc.lat, loc.lng]).setContent(`<b>${loc.name}</b><br><small>${loc.desc}</small>`).openOn(map);
-    }
+      if (!adm) {
+        err.innerText = "Admission number daalein.";
+        err.classList.remove('hidden');
+        return;
+      }
 
-    // Select AB-2 as default route
-    selectDestination(LOCATIONS['ab2']);
-
-    // 3. Route Walk Simulator
-    function startSimulation() {
-      if (!selectedDest) return;
-      if (walkerMarker) map.removeLayer(walkerMarker);
-      if (simInterval) clearInterval(simInterval);
-
-      document.getElementById('simStatus').classList.remove('hidden');
-      document.getElementById('simStatusText').innerText = `Simulating Walk to ${selectedDest.name}...`;
-
-      const start = MAIN_GATE;
-      const end = [selectedDest.lat, selectedDest.lng];
-      let progress = 0;
-
-      const simIcon = L.divIcon({ className: 'sim-walker', iconSize: [16, 16] });
-      walkerMarker = L.marker(start, { icon: simIcon }).addTo(map);
-
-      simInterval = setInterval(() => {
-        progress += 0.02;
-        if (progress >= 1) {
-          walkerMarker.setLatLng(end);
-          clearInterval(simInterval);
-          document.getElementById('simStatusText').innerText = `✅ Arrived at ${selectedDest.name}!`;
-          setTimeout(() => document.getElementById('simStatus').classList.add('hidden'), 3000);
-          return;
-        }
-        const currentLat = start[0] + (end[0] - start[0]) * progress;
-        const currentLng = start[1] + (end[1] - start[1]) * progress;
-        walkerMarker.setLatLng([currentLat, currentLng]);
-      }, 50);
-    }
-
-    // 4. Admission Predictor
-    async function runAdmissionPredictor() {
-      const rank = document.getElementById('predRank').value;
-      const cat = document.getElementById('predCat').value;
-      if(!rank) return alert("Rank daalna zaroori hai");
-
-      const res = await fetch('/api/predict-admission', {
+      const res = await fetch('/student/send-otp', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ rank: rank, category: cat })
+        body: JSON.stringify({ admission_no: adm })
       });
       const data = await res.json();
       if(data.success) {
-        document.getElementById('predictorResult').classList.remove('hidden');
-        document.getElementById('predSummary').innerText = data.summary;
-        const cards = document.getElementById('predCards');
-        cards.innerHTML = '';
-        data.eligible_branches.forEach(b => {
-          cards.innerHTML += `
-            <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl space-y-2">
-              <span class="text-[10px] bg-${b.color}-500/10 text-${b.color}-400 border border-${b.color}-500/20 px-2 py-0.5 rounded-full font-bold">${b.chance}</span>
-              <h5 class="text-sm font-bold text-white">${b.branch}</h5>
-            </div>
-          `;
-        });
+        tempStudentAdm = adm;
+        document.getElementById('stdStep1').classList.add('hidden');
+        document.getElementById('stdStep2').classList.remove('hidden');
+        document.getElementById('stdOtpMsg').innerText = data.message;
+        document.getElementById('stdOtp').value = data.otp;
+      } else {
+        err.innerText = data.message;
+        err.classList.remove('hidden');
       }
     }
 
-    // 5. Complaint Submission
-    async function submitComplaint() {
+    async function verifyStudentOtp() {
+      const otp = document.getElementById('stdOtp').value.trim();
+      const res = await fetch('/student/verify-otp', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ admission_no: tempStudentAdm, otp: otp })
+      });
+      const data = await res.json();
+      if(data.success) {
+        activeUser = data.user.name + ` (${tempStudentAdm})`;
+        closeModal('studentModal');
+        document.getElementById('authSlot').innerHTML = `
+          <div class="text-xs bg-slate-900 border border-slate-700 px-3 py-1.5 rounded-xl text-emerald-400 font-bold flex items-center gap-1.5">
+            <span>🎓</span> ${data.user.name}
+          </div>
+        `;
+      } else alert(data.message);
+    }
+
+    // 6. Visitor Registration
+    let tempVisitorMobile = "";
+    async function requestVisitorOtp() {
+      const name = document.getElementById('visName').value.trim();
+      const mobile = document.getElementById('visMobile').value.trim();
+      const aadhaar = document.getElementById('visAadhaar').value.trim();
+      const purpose = document.getElementById('visPurpose').value;
+      const err = document.getElementById('visErr');
+      err.classList.add('hidden');
+
+      if (!name || !mobile || !aadhaar) {
+        err.innerText = "Saare details daalna zaroori hai.";
+        err.classList.remove('hidden');
+        return;
+      }
+
+      const res = await fetch('/visitor/send-otp', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ name, mobile, aadhaar, purpose })
+      });
+      const data = await res.json();
+      if(data.success) {
+        tempVisitorMobile = mobile;
+        document.getElementById('visStep1').classList.add('hidden');
+        document.getElementById('visStep2').classList.remove('hidden');
+        document.getElementById('visOtpNotice').innerText = data.message;
+        document.getElementById('visOtp').value = data.otp;
+      } else {
+        err.innerText = data.message;
+        err.classList.remove('hidden');
+      }
+    }
+
+    async function verifyVisitorOtp() {
+      const otp = document.getElementById('visOtp').value.trim();
+      const res = await fetch('/visitor/verify-otp', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ mobile: tempVisitorMobile, otp: otp })
+      });
+      const data = await res.json();
+      if(data.success) {
+        closeModal('visitorModal');
+        alert(`🎉 Visitor Pass Generated: ${data.visitor.pass_id}\nGuest: ${data.visitor.name}`);
+        document.getElementById('authSlot').innerHTML = `
+          <div class="text-xs bg-purple-950/60 border border-purple-500/40 px-3 py-1.5 rounded-xl text-purple-300 font-bold flex items-center gap-1.5">
+            <span>🪪</span> Pass: ${data.visitor.pass_id}
+          </div>
+        `;
+      } else alert(data.message);
+    }
+
+    // 7. Grievance
+    async function submitGrievance() {
       const desc = document.getElementById('cmpDesc').value.trim();
-      const loc = document.getElementById('cmpLocation').value.trim();
-      const cat = document.getElementById('cmpCategory').value;
+      const loc = document.getElementById('cmpLoc').value.trim();
+      const cat = document.getElementById('cmpCat').value;
       const st = document.getElementById('cmpStatus');
 
       if (!desc) {
@@ -491,113 +546,14 @@
       const res = await fetch('/submit-complaint', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ description: desc, location: loc, category: cat, admission_no: loggedInStudent || "Guest" })
+        body: JSON.stringify({ description: desc, location: loc, category: cat, admission_no: activeUser || "Guest" })
       });
       const data = await res.json();
       if(data.success) {
-        st.innerHTML = `✅ ${data.message} (Ticket: ${data.ticket_id})`;
+        st.innerHTML = `✅ ${data.message} <br><b>Ticket: ${data.ticket_id}</b>`;
         st.className = "text-xs text-emerald-400 block font-bold";
-        document.getElementById('cmpDesc').value = '';
+        setTimeout(() => closeModal('complaintModal'), 2000);
       }
-    }
-
-    // 6. Lost & Found Function
-    function openLostFoundModal() { document.getElementById('lostModal').classList.remove('hidden'); }
-    async function submitLostItem() {
-      const title = document.getElementById('lfTitle').value;
-      const loc = document.getElementById('lfLoc').value;
-      const contact = document.getElementById('lfContact').value;
-      const type = document.getElementById('lfType').value;
-
-      if(!title) return alert("Item name likhein.");
-
-      const res = await fetch('/api/lost-found/add', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ title: title, location: loc, contact: contact, type: type })
-      });
-      const data = await res.json();
-      if(data.success) {
-        alert(data.message);
-        location.reload();
-      }
-    }
-
-    // 7. Background Particles Canvas Simulation
-    const canvas = document.getElementById('particlesCanvas');
-    const ctx = canvas.getContext('2d');
-    let particles = [];
-
-    function resizeCanvas() {
-      canvas.width = canvas.parentElement.offsetWidth;
-      canvas.height = canvas.parentElement.offsetHeight;
-    }
-    window.addEventListener('resize', resizeCanvas);
-    resizeCanvas();
-
-    for (let i = 0; i < 40; i++) {
-      particles.push({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        r: Math.random() * 2 + 1,
-        dx: (Math.random() - 0.5) * 0.8,
-        dy: (Math.random() - 0.5) * 0.8
-      });
-    }
-
-    function animateParticles() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = "rgba(59, 130, 246, 0.4)";
-      particles.forEach(p => {
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fill();
-        p.x += p.dx;
-        p.y += p.dy;
-        if (p.x < 0 || p.x > canvas.width) p.dx *= -1;
-        if (p.y < 0 || p.y > canvas.height) p.dy *= -1;
-      });
-      requestAnimationFrame(animateParticles);
-    }
-    animateParticles();
-
-    // 8. Auth Logic
-    function openLoginModal() { document.getElementById('loginModal').classList.remove('hidden'); }
-    function closeLoginModal() { document.getElementById('loginModal').classList.add('hidden'); }
-
-    async function requestOtp() {
-      const adm = document.getElementById('inputAdm').value.trim().toUpperCase();
-      const res = await fetch('/send-otp', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ admission_no: adm })
-      });
-      const d = await res.json();
-      if (d.success) {
-        loggedInStudent = adm;
-        document.getElementById('loginStep1').classList.add('hidden');
-        document.getElementById('loginStep2').classList.remove('hidden');
-        document.getElementById('otpMsg').innerText = d.message;
-        document.getElementById('inputOtp').value = d.otp;
-      } else alert(d.message);
-    }
-
-    async function verifyOtp() {
-      const otp = document.getElementById('inputOtp').value.trim();
-      const res = await fetch('/verify-otp', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ admission_no: loggedInStudent, otp: otp })
-      });
-      const d = await res.json();
-      if(d.success) {
-        closeLoginModal();
-        document.getElementById('authContainer').innerHTML = `
-          <div class="text-xs bg-slate-900 border border-slate-700 px-3 py-1.5 rounded-xl text-emerald-400 font-bold">
-            👤 ${d.user.name} (${loggedInStudent})
-          </div>
-        `;
-      } else alert(d.message);
     }
   </script>
 </body>
