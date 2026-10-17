@@ -2,142 +2,602 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>GL Bajaj Campus Guide</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GL Bajaj CampusGuide | 360° Portal & Simulator</title>
+
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Leaflet CSS & JS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
   <style>
-    #map { height: calc(100vh - 65px); width: 100%; }
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    #map { height: 500px; width: 100%; border-radius: 1.25rem; z-index: 10; }
+    
+    /* Walker Simulation Dot */
+    .sim-walker {
+      width: 16px;
+      height: 16px;
+      background: #22c55e;
+      border: 3px solid #ffffff;
+      border-radius: 50%;
+      box-shadow: 0 0 15px #22c55e;
+    }
+    
+    /* Background Canvas Particle */
+    #particlesCanvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+    }
   </style>
 </head>
-<body class="bg-slate-900 text-white flex flex-col h-screen overflow-hidden">
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col relative selection:bg-blue-600 selection:text-white">
 
-  <!-- Header -->
-  <header class="h-[65px] bg-slate-900 border-b border-slate-800 px-4 flex items-center justify-between">
-    <div class="flex items-center gap-2">
-      <span class="bg-blue-600 text-white font-bold px-2.5 py-1 rounded-lg">GLB</span>
-      <h1 class="text-base font-bold">Campus Guide & Navigator</h1>
-    </div>
-    <div class="flex gap-2">
-      <button onclick="document.getElementById('cmpModal').classList.remove('hidden')" class="bg-amber-600 text-xs px-3 py-1.5 rounded-lg font-semibold">Report Issue</button>
-      <a href="/admin" class="bg-slate-800 border border-slate-700 text-xs px-3 py-1.5 rounded-lg">Admin</a>
-      <button onclick="document.getElementById('loginModal').classList.remove('hidden')" id="loginBtn" class="bg-blue-600 text-xs px-3 py-1.5 rounded-lg font-semibold">Login</button>
+  <!-- ================= TOP HERO BANNER & NAVBAR ================= -->
+  <header class="sticky top-0 z-50 bg-slate-950/85 backdrop-blur-md border-b border-slate-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 h-20 flex items-center justify-between">
+      <!-- GL Bajaj Brand Logo & Title -->
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-700 to-indigo-500 p-0.5 shadow-lg shadow-blue-600/30">
+          <div class="w-full h-full bg-slate-900 rounded-[14px] flex items-center justify-center font-extrabold text-blue-400 text-xl tracking-wider">
+            GLB
+          </div>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="font-extrabold text-lg sm:text-xl tracking-tight text-white">GL Bajaj <span class="text-blue-500">CampusGuide</span></h1>
+            <span class="text-[10px] bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2 py-0.5 rounded-full font-bold uppercase">v2.0 360°</span>
+          </div>
+          <p class="text-xs text-slate-400">Greater Noida • AKTU Code: 192 • NBA & NAAC A+ Accredited</p>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs Buttons -->
+      <nav class="hidden md:flex items-center gap-1 bg-slate-900/90 border border-slate-800 p-1.5 rounded-xl">
+        <button onclick="switchTab('explore')" id="tab-btn-explore" class="tab-btn px-4 py-2 text-xs font-semibold rounded-lg bg-blue-600 text-white transition">🧭 Campus Explore</button>
+        <button onclick="switchTab('counselling')" id="tab-btn-counselling" class="tab-btn px-4 py-2 text-xs font-semibold rounded-lg text-slate-400 hover:text-white transition">🎓 Admissions & Predictor</button>
+        <button onclick="switchTab('complaints')" id="tab-btn-complaints" class="tab-btn px-4 py-2 text-xs font-semibold rounded-lg text-slate-400 hover:text-white transition">⚠️ Grievance Cell</button>
+        <button onclick="switchTab('lostfound')" id="tab-btn-lostfound" class="tab-btn px-4 py-2 text-xs font-semibold rounded-lg text-slate-400 hover:text-white transition">🔍 Lost & Found</button>
+        <button onclick="switchTab('clubs')" id="tab-btn-clubs" class="tab-btn px-4 py-2 text-xs font-semibold rounded-lg text-slate-400 hover:text-white transition">🎪 Clubs & Fests</button>
+      </nav>
+
+      <!-- Auth Container -->
+      <div id="authContainer" class="flex items-center gap-2">
+        <button onclick="openLoginModal()" class="text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-xl transition shadow-lg shadow-blue-600/30">
+          Student Login
+        </button>
+      </div>
     </div>
   </header>
 
-  <!-- Map Area -->
-  <div class="flex-1 relative">
-    <div id="map"></div>
-    <!-- Quick Nav -->
-    <div class="absolute top-3 left-3 z-[400] bg-slate-900/90 p-3 rounded-xl border border-slate-700 max-w-xs space-y-1.5">
-      <div class="text-[11px] font-bold text-slate-400">QUICK DESTINATIONS</div>
-      <div id="buttonsList" class="flex flex-wrap gap-1"></div>
-    </div>
+  <!-- Mobile Quick Tabs -->
+  <div class="md:hidden flex overflow-x-auto gap-2 p-3 bg-slate-900 border-b border-slate-800 text-xs">
+    <button onclick="switchTab('explore')" class="whitespace-nowrap px-3 py-1.5 bg-blue-600 rounded-lg text-white">🧭 Explore</button>
+    <button onclick="switchTab('counselling')" class="whitespace-nowrap px-3 py-1.5 bg-slate-800 rounded-lg text-slate-300">🎓 Predictor</button>
+    <button onclick="switchTab('complaints')" class="whitespace-nowrap px-3 py-1.5 bg-slate-800 rounded-lg text-slate-300">⚠️ Grievance</button>
+    <button onclick="switchTab('lostfound')" class="whitespace-nowrap px-3 py-1.5 bg-slate-800 rounded-lg text-slate-300">🔍 Lost/Found</button>
+    <button onclick="switchTab('clubs')" class="whitespace-nowrap px-3 py-1.5 bg-slate-800 rounded-lg text-slate-300">🎪 Clubs</button>
   </div>
 
-  <!-- Login Modal -->
-  <div id="loginModal" class="fixed inset-0 bg-black/70 hidden flex items-center justify-center p-4 z-50">
-    <div class="bg-slate-800 p-5 rounded-xl max-w-xs w-full text-center space-y-3">
-      <h3 class="font-bold text-base">Student Portal</h3>
-      <input id="admNo" type="text" placeholder="25116CN001" class="w-full bg-slate-900 border border-slate-700 p-2 text-sm rounded outline-none uppercase font-mono">
-      <button onclick="getOtp()" class="w-full bg-blue-600 p-2 text-sm rounded font-bold">Send OTP</button>
-      
-      <div id="otpBox" class="hidden space-y-2 pt-2 border-t border-slate-700">
-        <p id="otpMsg" class="text-xs text-amber-300"></p>
-        <input id="userOtp" type="text" placeholder="OTP" class="w-full bg-slate-900 border border-slate-700 p-2 text-center text-sm rounded font-mono">
-        <button onclick="doLogin()" class="w-full bg-emerald-600 p-2 text-sm rounded font-bold">Verify</button>
+  <!-- Hero Visuals Section -->
+  <section class="relative bg-gradient-to-b from-blue-950/40 via-slate-950 to-slate-950 py-10 px-4 sm:px-6 overflow-hidden border-b border-slate-800/80">
+    <canvas id="particlesCanvas"></canvas>
+    <div class="max-w-7xl mx-auto relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
+      <div class="space-y-4 max-w-2xl">
+        <div class="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 px-3.5 py-1.5 rounded-full text-xs text-blue-300 font-semibold">
+          🚀 India's Top Ranked Innovation Campus
+        </div>
+        <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white leading-tight">
+          Explore, Navigate & Experience <span class="bg-gradient-to-r from-blue-400 via-indigo-300 to-sky-300 bg-clip-text text-transparent">GL Bajaj Campus</span>
+        </h2>
+        <p class="text-sm text-slate-400 leading-relaxed">
+          Integrated smart student dashboard: Real-time route walk simulator, admission rank predictor, fast-track grievance redressal and campus life network.
+        </p>
+        <div class="flex flex-wrap gap-3 pt-2">
+          <button onclick="switchTab('explore')" class="bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs px-5 py-3 rounded-xl transition shadow-lg shadow-blue-600/30">
+            Launch Campus Simulator →
+          </button>
+          <button onclick="switchTab('counselling')" class="bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 font-bold text-xs px-5 py-3 rounded-xl transition">
+            Check Cutoffs & Predict Branch
+          </button>
+        </div>
       </div>
-      <button onclick="document.getElementById('loginModal').classList.add('hidden')" class="text-xs text-slate-400">Cancel</button>
+
+      <!-- Campus Visual Card -->
+      <div class="w-full md:w-96 bg-slate-900/90 border border-slate-800 rounded-3xl p-4 shadow-2xl backdrop-blur relative overflow-hidden group">
+        <div class="h-48 rounded-2xl overflow-hidden relative">
+          <img src="https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=800&auto=format&fit=crop&q=80" alt="Campus Building" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+          <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent"></div>
+          <span class="absolute bottom-3 left-3 text-xs bg-blue-600 text-white px-2.5 py-1 rounded-md font-bold">Main Block AB-1</span>
+        </div>
+        <div class="mt-4 flex justify-between items-center text-xs text-slate-400">
+          <span>📍 Knowledge Park III, Greater Noida</span>
+          <span class="text-emerald-400 font-semibold">Campus Open</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= MAIN CONTENT WRAPPER (TABS) ================= -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-8 flex-1 w-full">
+
+    <!-- 1. TAB: CAMPUS EXPLORE & SIMULATION -->
+    <div id="tab-explore" class="tab-content space-y-6">
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h3 class="text-xl font-bold text-white flex items-center gap-2">
+            <span>🧭</span> Interactive 3D Pathway & Walk Simulator
+          </h3>
+          <p class="text-xs text-slate-400">Select any campus destination to simulate walking directions from Gate 1.</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="startSimulation()" id="simBtn" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-4 py-2 rounded-xl transition shadow flex items-center gap-2">
+            <span>▶</span> Start Walk Simulation
+          </button>
+        </div>
+      </div>
+
+      <!-- Map & Destinations Panel -->
+      <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <!-- Sidebar Selection -->
+        <div class="lg:col-span-1 space-y-3">
+          <div class="text-xs font-bold text-slate-400 uppercase tracking-wider">Campus Locations</div>
+          <div class="space-y-2 max-h-[460px] overflow-y-auto pr-1" id="locationCards"></div>
+        </div>
+
+        <!-- Map Container -->
+        <div class="lg:col-span-3 bg-slate-900 p-3 rounded-2xl border border-slate-800 shadow-xl relative">
+          <div id="map"></div>
+          <!-- Simulation Status Badge -->
+          <div id="simStatus" class="absolute bottom-6 left-6 z-[400] bg-slate-950/90 border border-slate-700 px-4 py-2 rounded-xl text-xs flex items-center gap-2 shadow-2xl hidden">
+            <span class="w-3 h-3 rounded-full bg-emerald-500 animate-ping"></span>
+            <span id="simStatusText" class="font-medium text-slate-200">Simulating walk...</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. TAB: ADMISSIONS & COUNSELLING PREDICTOR -->
+    <div id="tab-counselling" class="tab-content hidden space-y-6">
+      <div class="bg-gradient-to-r from-blue-950/50 to-indigo-950/50 border border-blue-900/50 p-6 rounded-3xl space-y-4">
+        <h3 class="text-2xl font-extrabold text-white">GL Bajaj College & Cutoff Predictor 2026</h3>
+        <p class="text-sm text-slate-300">
+          Apni JEE Main CRL Rank ya CUET/UPTAC Rank daalkar check karein ki GL Bajaj Institute of Technology & Management me aapko kaunsi branch mil sakti hai.
+        </p>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+          <div>
+            <label class="block text-xs font-bold text-slate-400 mb-1">Your All India / CRL Rank</label>
+            <input id="predRank" type="number" placeholder="e.g. 110000" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl text-sm text-white font-mono outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-400 mb-1">Category</label>
+            <select id="predCat" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl text-sm text-white outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="General">General / OPEN</option>
+              <option value="EWS">GEN-EWS</option>
+              <option value="OBC">OBC-NCL</option>
+              <option value="SC">SC / ST</option>
+            </select>
+          </div>
+          <div class="flex items-end">
+            <button onclick="runAdmissionPredictor()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold p-3 rounded-xl text-sm transition shadow-lg shadow-blue-600/30">
+              Predict My Branches 🎯
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Result Container -->
+      <div id="predictorResult" class="hidden space-y-3">
+        <h4 id="predSummary" class="text-sm font-bold text-slate-300"></h4>
+        <div id="predCards" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4"></div>
+      </div>
+    </div>
+
+    <!-- 3. TAB: GRIEVANCE / COMPLAINTS CELL -->
+    <div id="tab-complaints" class="tab-content hidden space-y-6">
+      <div class="max-w-2xl mx-auto bg-slate-900 border border-slate-800 p-8 rounded-3xl shadow-2xl space-y-5">
+        <div>
+          <h3 class="text-xl font-bold text-white flex items-center gap-2">
+            <span>⚠️</span> Student Grievance & Issue Portal
+          </h3>
+          <p class="text-xs text-slate-400">Campus facilities, labs ya network issue direct administration tak pahunchayein.</p>
+        </div>
+
+        <div class="space-y-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 mb-1">Issue Category</label>
+            <select id="cmpCategory" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-sm text-white outline-none">
+              <option value="Lab & Hardware">Lab / Broken Computers / Internet</option>
+              <option value="Campus Facilities">Electricity / AC / Water Cooler</option>
+              <option value="Cleanliness">Hygiene & Washrooms</option>
+              <option value="Navigation & Map">Campus Map Route Error</option>
+              <option value="Other">Other Query</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 mb-1">Location in Campus</label>
+            <input id="cmpLocation" type="text" placeholder="e.g. AB-2, 3rd Floor, Room 304" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-sm text-white outline-none">
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 mb-1">Detailed Description</label>
+            <textarea id="cmpDesc" rows="4" placeholder="Apni pareshani ka vivaran likhein..." class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-sm text-white outline-none"></textarea>
+          </div>
+        </div>
+
+        <p id="cmpStatus" class="text-xs font-bold hidden"></p>
+
+        <button onclick="submitComplaint()" class="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold p-3.5 rounded-xl text-sm transition">
+          Submit Official Grievance Ticket
+        </button>
+      </div>
+    </div>
+
+    <!-- 4. TAB: LOST & FOUND -->
+    <div id="tab-lostfound" class="tab-content hidden space-y-6">
+      <div class="flex justify-between items-center">
+        <div>
+          <h3 class="text-xl font-bold text-white flex items-center gap-2">
+            <span>🔍</span> Campus Lost & Found Bulletin
+          </h3>
+          <p class="text-xs text-slate-400">Report or recover misplaced belongings inside the college premises.</p>
+        </div>
+        <button onclick="openLostFoundModal()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition shadow">
+          + Post New Item
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4" id="lostFoundCards">
+        {% for item in lost_items %}
+        <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-3">
+          <div class="flex justify-between items-center">
+            <span class="text-[10px] font-bold uppercase px-2.5 py-1 rounded-full 
+              {% if item.type == 'Lost' %} bg-red-500/10 text-red-400 border border-red-500/20 {% else %} bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 {% endif %}">
+              {{ item.type }}
+            </span>
+            <span class="text-xs text-slate-500 font-mono">{{ item.date }}</span>
+          </div>
+          <h4 class="font-bold text-base text-white">{{ item.title }}</h4>
+          <p class="text-xs text-slate-400">📍 {{ item.location }}</p>
+          <div class="text-xs bg-slate-950 p-2.5 rounded-lg border border-slate-800 text-blue-300 font-mono">
+            📞 {{ item.contact }}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- 5. TAB: CLUBS & EVENTS -->
+    <div id="tab-clubs" class="tab-content hidden space-y-6">
+      <div>
+        <h3 class="text-xl font-bold text-white flex items-center gap-2">
+          <span>🎪</span> Student Societies, Fests & Tech Clubs
+        </h3>
+        <p class="text-xs text-slate-400">Connect with active campus chapters and annual cultural events.</p>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {% for club in clubs %}
+        <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl flex flex-col justify-between space-y-3">
+          <div class="space-y-1.5">
+            <span class="text-[10px] bg-blue-500/10 text-blue-400 border border-blue-500/20 font-bold px-2 py-0.5 rounded-full uppercase">{{ club.tag }}</span>
+            <h4 class="text-lg font-bold text-white">{{ club.name }}</h4>
+            <p class="text-xs text-slate-400 leading-relaxed">{{ club.desc }}</p>
+          </div>
+          <div>
+            <button class="text-xs text-blue-400 hover:text-blue-300 font-semibold">Join Society Chapter →</button>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </main>
+
+  <!-- ================= STUDENT LOGIN MODAL ================= -->
+  <div id="loginModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-slate-900 border border-slate-800 p-6 rounded-3xl max-w-sm w-full space-y-4">
+      <div class="flex justify-between items-center">
+        <h3 class="font-bold text-base text-white">Student Portal Login</h3>
+        <button onclick="closeLoginModal()" class="text-slate-400 hover:text-white">✕</button>
+      </div>
+
+      <div id="loginStep1" class="space-y-3">
+        <div>
+          <label class="block text-xs text-slate-400 mb-1">Admission Number</label>
+          <input id="inputAdm" type="text" placeholder="25116CN001" class="w-full bg-slate-800 border border-slate-700 p-2.5 rounded-xl text-sm font-mono uppercase text-white outline-none">
+        </div>
+        <button onclick="requestOtp()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold p-2.5 rounded-xl text-sm transition">Send Verification OTP</button>
+      </div>
+
+      <div id="loginStep2" class="space-y-3 hidden">
+        <p id="otpMsg" class="text-xs bg-slate-800 p-2.5 rounded-xl text-amber-300 font-mono text-center"></p>
+        <input id="inputOtp" type="text" placeholder="• • • • • •" class="w-full bg-slate-800 border border-slate-700 p-2.5 rounded-xl text-center text-lg font-mono text-white outline-none">
+        <button onclick="verifyOtp()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold p-2.5 rounded-xl text-sm transition">Verify & Unlock</button>
+      </div>
+
+      <p id="loginError" class="text-xs text-red-400 text-center hidden"></p>
     </div>
   </div>
 
-  <!-- Complaint Modal -->
-  <div id="cmpModal" class="fixed inset-0 bg-black/70 hidden flex items-center justify-center p-4 z-50">
-    <div class="bg-slate-800 p-5 rounded-xl max-w-sm w-full space-y-3">
-      <h3 class="font-bold text-base">Report Campus Issue</h3>
-      <input id="cmpLoc" type="text" placeholder="Location / Lab" class="w-full bg-slate-900 border border-slate-700 p-2 text-sm rounded outline-none">
-      <textarea id="cmpText" placeholder="Samasya likhein..." class="w-full bg-slate-900 border border-slate-700 p-2 text-sm rounded outline-none"></textarea>
-      <button onclick="sendComplaint()" class="w-full bg-amber-600 p-2 text-sm rounded font-bold">Submit</button>
-      <button onclick="document.getElementById('cmpModal').classList.add('hidden')" class="w-full text-xs text-slate-400">Close</button>
+  <!-- ================= POST LOST ITEM MODAL ================= -->
+  <div id="lostModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-slate-900 border border-slate-800 p-6 rounded-3xl max-w-sm w-full space-y-3">
+      <h3 class="font-bold text-base text-white">Post Item to Bulletin</h3>
+      <select id="lfType" class="w-full bg-slate-800 border border-slate-700 p-2 text-xs rounded-xl text-white outline-none">
+        <option value="Lost">Lost (Meri cheez kho gayi)</option>
+        <option value="Found">Found (Mujhe kisi ki cheez mili)</option>
+      </select>
+      <input id="lfTitle" type="text" placeholder="Item Name (e.g. Blue HP Pen Drive)" class="w-full bg-slate-800 border border-slate-700 p-2 text-xs rounded-xl text-white outline-none">
+      <input id="lfLoc" type="text" placeholder="Location (e.g. Ground Floor AB-2)" class="w-full bg-slate-800 border border-slate-700 p-2 text-xs rounded-xl text-white outline-none">
+      <input id="lfContact" type="text" placeholder="Your Phone or Email" class="w-full bg-slate-800 border border-slate-700 p-2 text-xs rounded-xl text-white outline-none">
+      <button onclick="submitLostItem()" class="w-full bg-blue-600 p-2.5 rounded-xl text-xs font-bold text-white">Post to Bulletin</button>
+      <button onclick="document.getElementById('lostModal').classList.add('hidden')" class="w-full text-xs text-slate-500">Cancel</button>
     </div>
   </div>
 
+  <!-- ================= JAVASCRIPT LOGIC ================= -->
   <script>
     const LOCATIONS = {{ locations|tojson }};
-    const GATE = [28.4738, 77.4882];
+    const MAIN_GATE = [28.4738, 77.4882];
+    let selectedDest = LOCATIONS['ab2'];
     let routeLine = null;
+    let walkerMarker = null;
+    let simInterval = null;
+    let loggedInStudent = null;
 
+    // 1. Tab Switching
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.getElementById('tab-' + tabId).classList.remove('hidden');
+
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('bg-blue-600', 'text-white');
+        btn.classList.add('text-slate-400');
+      });
+      const activeBtn = document.getElementById('tab-btn-' + tabId);
+      if(activeBtn) {
+        activeBtn.classList.add('bg-blue-600', 'text-white');
+        activeBtn.classList.remove('text-slate-400');
+      }
+
+      if (tabId === 'explore') {
+        setTimeout(() => map.invalidateSize(), 200);
+      }
+    }
+
+    // 2. Leaflet Map Setup
     const map = L.map('map').setView([28.4728, 77.4897], 18);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
 
-    L.marker(GATE).addTo(map).bindPopup("<b>Campus Main Gate</b>");
+    L.marker(MAIN_GATE).addTo(map).bindPopup("<b>📍 Gate 1 (Main Entrance)</b>");
 
-    function goTo(lat, lng, name, desc) {
-      if(routeLine) map.removeLayer(routeLine);
-      routeLine = L.polyline([GATE, [(GATE[0]+lat)/2, (GATE[1]+lng)/2], [lat, lng]], {
-        color: '#3b82f6', weight: 5, dashArray: '6, 6'
+    // Populate Sidebar Cards & Map Markers
+    const cardsBox = document.getElementById('locationCards');
+    for (let k in LOCATIONS) {
+      let loc = LOCATIONS[k];
+      let m = L.marker([loc.lat, loc.lng]).addTo(map);
+      m.bindPopup(`<b>${loc.name}</b><br><small>${loc.desc}</small>`);
+      m.on('click', () => selectDestination(loc));
+
+      let card = document.createElement('div');
+      card.className = "bg-slate-900 border border-slate-800 p-3 rounded-xl cursor-pointer hover:border-blue-500 transition";
+      card.innerHTML = `<h5 class="text-xs font-bold text-white">${loc.name}</h5><p class="text-[11px] text-slate-400">${loc.desc}</p>`;
+      card.onclick = () => selectDestination(loc);
+      cardsBox.appendChild(card);
+    }
+
+    function selectDestination(loc) {
+      selectedDest = loc;
+      if (routeLine) map.removeLayer(routeLine);
+      if (walkerMarker) map.removeLayer(walkerMarker);
+      if (simInterval) clearInterval(simInterval);
+
+      const mid = [(MAIN_GATE[0] + loc.lat) / 2, (MAIN_GATE[1] + loc.lng) / 2];
+      routeLine = L.polyline([MAIN_GATE, mid, [loc.lat, loc.lng]], {
+        color: '#3b82f6', weight: 6, dashArray: '8, 8', opacity: 0.9
       }).addTo(map);
+
       map.fitBounds(routeLine.getBounds(), { padding: [40, 40] });
-      L.popup().setLatLng([lat, lng]).setContent(`<b>${name}</b><br><small>${desc}</small>`).openOn(map);
+      L.popup().setLatLng([loc.lat, loc.lng]).setContent(`<b>${loc.name}</b><br><small>${loc.desc}</small>`).openOn(map);
     }
 
-    const bBox = document.getElementById('buttonsList');
-    for(let k in LOCATIONS) {
-      let l = LOCATIONS[k];
-      let m = L.marker([l.lat, l.lng]).addTo(map);
-      m.bindPopup(`<b>${l.name}</b>`);
-      m.on('click', () => goTo(l.lat, l.lng, l.name, l.desc));
+    // Select AB-2 as default route
+    selectDestination(LOCATIONS['ab2']);
 
-      let btn = document.createElement('button');
-      btn.className = "text-[11px] bg-slate-800 border border-slate-600 px-2 py-1 rounded";
-      btn.innerText = l.name.split('(')[0];
-      btn.onclick = () => goTo(l.lat, l.lng, l.name, l.desc);
-      bBox.appendChild(btn);
+    // 3. Route Walk Simulator
+    function startSimulation() {
+      if (!selectedDest) return;
+      if (walkerMarker) map.removeLayer(walkerMarker);
+      if (simInterval) clearInterval(simInterval);
+
+      document.getElementById('simStatus').classList.remove('hidden');
+      document.getElementById('simStatusText').innerText = `Simulating Walk to ${selectedDest.name}...`;
+
+      const start = MAIN_GATE;
+      const end = [selectedDest.lat, selectedDest.lng];
+      let progress = 0;
+
+      const simIcon = L.divIcon({ className: 'sim-walker', iconSize: [16, 16] });
+      walkerMarker = L.marker(start, { icon: simIcon }).addTo(map);
+
+      simInterval = setInterval(() => {
+        progress += 0.02;
+        if (progress >= 1) {
+          walkerMarker.setLatLng(end);
+          clearInterval(simInterval);
+          document.getElementById('simStatusText').innerText = `✅ Arrived at ${selectedDest.name}!`;
+          setTimeout(() => document.getElementById('simStatus').classList.add('hidden'), 3000);
+          return;
+        }
+        const currentLat = start[0] + (end[0] - start[0]) * progress;
+        const currentLng = start[1] + (end[1] - start[1]) * progress;
+        walkerMarker.setLatLng([currentLat, currentLng]);
+      }, 50);
     }
 
-    let savedAdm = "";
-    async function getOtp() {
-      savedAdm = document.getElementById('admNo').value.trim().toUpperCase();
-      let res = await fetch('/send-otp', {
+    // 4. Admission Predictor
+    async function runAdmissionPredictor() {
+      const rank = document.getElementById('predRank').value;
+      const cat = document.getElementById('predCat').value;
+      if(!rank) return alert("Rank daalna zaroori hai");
+
+      const res = await fetch('/api/predict-admission', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ admission_no: savedAdm })
+        body: JSON.stringify({ rank: rank, category: cat })
       });
-      let d = await res.json();
-      if(d.success) {
-        document.getElementById('otpBox').classList.remove('hidden');
+      const data = await res.json();
+      if(data.success) {
+        document.getElementById('predictorResult').classList.remove('hidden');
+        document.getElementById('predSummary').innerText = data.summary;
+        const cards = document.getElementById('predCards');
+        cards.innerHTML = '';
+        data.eligible_branches.forEach(b => {
+          cards.innerHTML += `
+            <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl space-y-2">
+              <span class="text-[10px] bg-${b.color}-500/10 text-${b.color}-400 border border-${b.color}-500/20 px-2 py-0.5 rounded-full font-bold">${b.chance}</span>
+              <h5 class="text-sm font-bold text-white">${b.branch}</h5>
+            </div>
+          `;
+        });
+      }
+    }
+
+    // 5. Complaint Submission
+    async function submitComplaint() {
+      const desc = document.getElementById('cmpDesc').value.trim();
+      const loc = document.getElementById('cmpLocation').value.trim();
+      const cat = document.getElementById('cmpCategory').value;
+      const st = document.getElementById('cmpStatus');
+
+      if (!desc) {
+        st.innerText = "Vivaran likhein.";
+        st.className = "text-xs text-red-400 block font-bold";
+        return;
+      }
+
+      const res = await fetch('/submit-complaint', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ description: desc, location: loc, category: cat, admission_no: loggedInStudent || "Guest" })
+      });
+      const data = await res.json();
+      if(data.success) {
+        st.innerHTML = `✅ ${data.message} (Ticket: ${data.ticket_id})`;
+        st.className = "text-xs text-emerald-400 block font-bold";
+        document.getElementById('cmpDesc').value = '';
+      }
+    }
+
+    // 6. Lost & Found Function
+    function openLostFoundModal() { document.getElementById('lostModal').classList.remove('hidden'); }
+    async function submitLostItem() {
+      const title = document.getElementById('lfTitle').value;
+      const loc = document.getElementById('lfLoc').value;
+      const contact = document.getElementById('lfContact').value;
+      const type = document.getElementById('lfType').value;
+
+      if(!title) return alert("Item name likhein.");
+
+      const res = await fetch('/api/lost-found/add', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ title: title, location: loc, contact: contact, type: type })
+      });
+      const data = await res.json();
+      if(data.success) {
+        alert(data.message);
+        location.reload();
+      }
+    }
+
+    // 7. Background Particles Canvas Simulation
+    const canvas = document.getElementById('particlesCanvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+
+    function resizeCanvas() {
+      canvas.width = canvas.parentElement.offsetWidth;
+      canvas.height = canvas.parentElement.offsetHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    for (let i = 0; i < 40; i++) {
+      particles.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        r: Math.random() * 2 + 1,
+        dx: (Math.random() - 0.5) * 0.8,
+        dy: (Math.random() - 0.5) * 0.8
+      });
+    }
+
+    function animateParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "rgba(59, 130, 246, 0.4)";
+      particles.forEach(p => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fill();
+        p.x += p.dx;
+        p.y += p.dy;
+        if (p.x < 0 || p.x > canvas.width) p.dx *= -1;
+        if (p.y < 0 || p.y > canvas.height) p.dy *= -1;
+      });
+      requestAnimationFrame(animateParticles);
+    }
+    animateParticles();
+
+    // 8. Auth Logic
+    function openLoginModal() { document.getElementById('loginModal').classList.remove('hidden'); }
+    function closeLoginModal() { document.getElementById('loginModal').classList.add('hidden'); }
+
+    async function requestOtp() {
+      const adm = document.getElementById('inputAdm').value.trim().toUpperCase();
+      const res = await fetch('/send-otp', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ admission_no: adm })
+      });
+      const d = await res.json();
+      if (d.success) {
+        loggedInStudent = adm;
+        document.getElementById('loginStep1').classList.add('hidden');
+        document.getElementById('loginStep2').classList.remove('hidden');
         document.getElementById('otpMsg').innerText = d.message;
-        document.getElementById('userOtp').value = d.fallback_otp || '';
+        document.getElementById('inputOtp').value = d.otp;
       } else alert(d.message);
     }
 
-    async function doLogin() {
-      let otp = document.getElementById('userOtp').value.trim();
-      let res = await fetch('/verify-otp', {
+    async function verifyOtp() {
+      const otp = document.getElementById('inputOtp').value.trim();
+      const res = await fetch('/verify-otp', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ admission_no: savedAdm, otp: otp })
+        body: JSON.stringify({ admission_no: loggedInStudent, otp: otp })
       });
-      let d = await res.json();
+      const d = await res.json();
       if(d.success) {
-        document.getElementById('loginModal').classList.add('hidden');
-        document.getElementById('loginBtn').innerText = d.user.name;
-        document.getElementById('loginBtn').className = "bg-emerald-600 text-xs px-3 py-1.5 rounded-lg";
+        closeLoginModal();
+        document.getElementById('authContainer').innerHTML = `
+          <div class="text-xs bg-slate-900 border border-slate-700 px-3 py-1.5 rounded-xl text-emerald-400 font-bold">
+            👤 ${d.user.name} (${loggedInStudent})
+          </div>
+        `;
       } else alert(d.message);
-    }
-
-    async function sendComplaint() {
-      let desc = document.getElementById('cmpText').value.trim();
-      let loc = document.getElementById('cmpLoc').value.trim();
-      if(!desc) return alert("Vivaran likhein");
-      let res = await fetch('/submit-complaint', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ description: desc, location: loc, admission_no: savedAdm || "Guest" })
-      });
-      let d = await res.json();
-      alert(d.message);
-      document.getElementById('cmpModal').classList.add('hidden');
     }
   </script>
 </body>
