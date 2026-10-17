@@ -2,503 +2,142 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GL Bajaj AI Campus Guide & Live Navigator</title>
-
-  <!-- Tailwind CSS CDN -->
+  <title>GL Bajaj Campus Guide</title>
   <script src="https://cdn.tailwindcss.com"></script>
-
-  <!-- Leaflet CSS & JS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
   <style>
-    #map {
-      height: calc(100vh - 70px);
-      width: 100%;
-      z-index: 10;
-    }
-    /* Live Location Pulsing Dot Animation */
-    .user-pulse-dot {
-      width: 18px;
-      height: 18px;
-      background: #3b82f6;
-      border: 3px solid #ffffff;
-      border-radius: 50%;
-      box-shadow: 0 0 0 rgba(59, 130, 246, 0.7);
-      animation: pulse-ring 1.8s infinite;
-    }
-    @keyframes pulse-ring {
-      0% {
-        box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
-      }
-      70% {
-        box-shadow: 0 0 0 16px rgba(59, 130, 246, 0);
-      }
-      100% {
-        box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
-      }
-    }
+    #map { height: calc(100vh - 65px); width: 100%; }
   </style>
 </head>
-<body class="bg-slate-900 text-slate-100 flex flex-col h-screen overflow-hidden font-sans">
+<body class="bg-slate-900 text-white flex flex-col h-screen overflow-hidden">
 
-  <!-- ========================================== -->
-  <!-- 🧭 NAVBAR                                   -->
-  <!-- ========================================== -->
-  <header class="h-[70px] bg-slate-900/95 backdrop-blur border-b border-slate-800 px-4 md:px-8 flex items-center justify-between z-20">
-    <div class="flex items-center gap-3">
-      <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center font-bold text-white text-lg shadow-lg shadow-blue-500/30">
-        GL
-      </div>
-      <div>
-        <h1 class="text-base md:text-lg font-bold tracking-tight text-white flex items-center gap-2">
-          Campus Guide <span class="text-xs px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30">Live GPS</span>
-        </h1>
-        <p class="text-xs text-slate-400 hidden sm:block">GL Bajaj Institute of Technology & Management</p>
-      </div>
+  <!-- Header -->
+  <header class="h-[65px] bg-slate-900 border-b border-slate-800 px-4 flex items-center justify-between">
+    <div class="flex items-center gap-2">
+      <span class="bg-blue-600 text-white font-bold px-2.5 py-1 rounded-lg">GLB</span>
+      <h1 class="text-base font-bold">Campus Guide & Navigator</h1>
     </div>
-
-    <!-- Top Action Buttons -->
-    <div class="flex items-center gap-2 sm:gap-3">
-      <!-- GPS Status Indicator -->
-      <button onclick="locateMe()" id="gpsBtn" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1.5 shadow-sm">
-        <span id="gpsIcon" class="text-blue-400">📍</span>
-        <span id="gpsText">Locate Me</span>
-      </button>
-
-      <!-- Report Issue Button -->
-      <button onclick="openComplaintModal()" class="text-xs bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 px-3 py-1.5 rounded-lg font-semibold transition flex items-center gap-1.5 shadow-sm">
-        <span>⚠️</span>
-        <span>Report Issue</span>
-      </button>
-
-      <!-- Admin Dashboard Link -->
-      <a href="/admin" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 px-3 py-1.5 rounded-lg font-medium transition hidden sm:inline-flex items-center gap-1">
-        ⚙️ Admin
-      </a>
-
-      <!-- Student Login Container -->
-      <div id="authContainer">
-        <button id="loginBtn" onclick="openLoginModal()" class="text-xs bg-blue-600 hover:bg-blue-500 text-white px-3.5 py-1.5 rounded-lg font-semibold shadow-md shadow-blue-600/30 transition flex items-center gap-1.5">
-          <span>Student Login</span>
-        </button>
-      </div>
+    <div class="flex gap-2">
+      <button onclick="document.getElementById('cmpModal').classList.remove('hidden')" class="bg-amber-600 text-xs px-3 py-1.5 rounded-lg font-semibold">Report Issue</button>
+      <a href="/admin" class="bg-slate-800 border border-slate-700 text-xs px-3 py-1.5 rounded-lg">Admin</a>
+      <button onclick="document.getElementById('loginModal').classList.remove('hidden')" id="loginBtn" class="bg-blue-600 text-xs px-3 py-1.5 rounded-lg font-semibold">Login</button>
     </div>
   </header>
 
-  <!-- ========================================== -->
-  <!-- 🗺️ MAP & QUICK NAV PANEL                   -->
-  <!-- ========================================== -->
-  <div class="flex-1 relative flex">
+  <!-- Map Area -->
+  <div class="flex-1 relative">
     <div id="map"></div>
-
-    <!-- Quick Navigation Drawer / Chips -->
-    <div class="absolute top-4 left-4 z-[400] max-w-xs sm:max-w-sm w-full bg-slate-900/90 backdrop-blur-md p-3.5 rounded-2xl border border-slate-800 shadow-2xl space-y-2 pointer-events-auto">
-      <div class="flex items-center justify-between">
-        <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Tap to Navigate</span>
-        <span id="routeSourceText" class="text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">From: Detecting GPS...</span>
-      </div>
-      <div class="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto" id="locationChips"></div>
+    <!-- Quick Nav -->
+    <div class="absolute top-3 left-3 z-[400] bg-slate-900/90 p-3 rounded-xl border border-slate-700 max-w-xs space-y-1.5">
+      <div class="text-[11px] font-bold text-slate-400">QUICK DESTINATIONS</div>
+      <div id="buttonsList" class="flex flex-wrap gap-1"></div>
     </div>
   </div>
 
-  <!-- ========================================== -->
-  <!-- 🔐 STUDENT LOGIN MODAL                     -->
-  <!-- ========================================== -->
-  <div id="loginModal" class="fixed inset-0 bg-black/75 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
-    <div class="bg-slate-900 border border-slate-800 text-white rounded-2xl shadow-2xl max-w-sm w-full p-6 relative">
-      <button onclick="closeLoginModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg">✕</button>
-
-      <div class="text-center mb-5">
-        <div class="w-12 h-12 bg-blue-600/20 border border-blue-500/30 rounded-2xl flex items-center justify-center text-blue-400 text-xl mx-auto mb-2">
-          🛡️
-        </div>
-        <h2 class="text-lg font-bold">Student Portal Login</h2>
-        <p class="text-xs text-slate-400">Admission No. daal kar registered email OTP se verify karein.</p>
+  <!-- Login Modal -->
+  <div id="loginModal" class="fixed inset-0 bg-black/70 hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-slate-800 p-5 rounded-xl max-w-xs w-full text-center space-y-3">
+      <h3 class="font-bold text-base">Student Portal</h3>
+      <input id="admNo" type="text" placeholder="25116CN001" class="w-full bg-slate-900 border border-slate-700 p-2 text-sm rounded outline-none uppercase font-mono">
+      <button onclick="getOtp()" class="w-full bg-blue-600 p-2 text-sm rounded font-bold">Send OTP</button>
+      
+      <div id="otpBox" class="hidden space-y-2 pt-2 border-t border-slate-700">
+        <p id="otpMsg" class="text-xs text-amber-300"></p>
+        <input id="userOtp" type="text" placeholder="OTP" class="w-full bg-slate-900 border border-slate-700 p-2 text-center text-sm rounded font-mono">
+        <button onclick="doLogin()" class="w-full bg-emerald-600 p-2 text-sm rounded font-bold">Verify</button>
       </div>
-
-      <!-- Step 1: Admission Input -->
-      <div id="otpStep1" class="space-y-3">
-        <div>
-          <label class="block text-xs font-medium text-slate-400 mb-1">Admission Number</label>
-          <input id="admissionInput" type="text" placeholder="e.g. 25116CN001" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:ring-2 focus:ring-blue-500 outline-none uppercase font-mono">
-        </div>
-        <button onclick="sendOtpRequest()" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-2 rounded-lg text-sm font-semibold transition">
-          Send OTP
-        </button>
-      </div>
-
-      <!-- Step 2: OTP Input -->
-      <div id="otpStep2" class="space-y-3 hidden">
-        <div id="otpNotice" class="text-xs bg-slate-800 border border-slate-700 p-2.5 rounded-lg text-slate-300"></div>
-
-        <div>
-          <div class="flex justify-between items-center mb-1">
-            <label class="text-xs font-medium text-slate-400">Enter 6-Digit Email OTP</label>
-            <button onclick="backToStep1()" class="text-[11px] text-blue-400 hover:underline">Change ID</button>
-          </div>
-          <input id="otpCodeInput" type="text" maxlength="6" placeholder="• • • • • •" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-center text-lg tracking-widest text-white focus:ring-2 focus:ring-blue-500 outline-none font-mono">
-        </div>
-
-        <button onclick="verifyOtpRequest()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-2 rounded-lg text-sm font-semibold transition">
-          Verify & Access
-        </button>
-      </div>
-
-      <p id="authError" class="text-xs text-red-400 mt-3 text-center hidden"></p>
-      <div class="mt-4 text-center">
-        <span class="text-[11px] text-slate-500">Test ID: <span class="font-mono text-slate-400">25116CN001</span></span>
-      </div>
+      <button onclick="document.getElementById('loginModal').classList.add('hidden')" class="text-xs text-slate-400">Cancel</button>
     </div>
   </div>
 
-  <!-- ========================================== -->
-  <!-- ⚠️ COMPLAINT MODAL                         -->
-  <!-- ========================================== -->
-  <div id="complaintModal" class="fixed inset-0 bg-black/75 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
-    <div class="bg-slate-900 border border-slate-800 text-white rounded-2xl shadow-2xl max-w-md w-full p-6 relative">
-      <div class="flex justify-between items-center mb-4 border-b border-slate-800 pb-3">
-        <div>
-          <h2 class="text-lg font-bold text-white flex items-center gap-2">
-            <span>⚠️</span> Campus Grievance / Report
-          </h2>
-          <p class="text-xs text-slate-400">Campus ya map sambandhit samasya darj karein</p>
-        </div>
-        <button onclick="closeComplaintModal()" class="text-slate-400 hover:text-white text-lg font-bold">✕</button>
-      </div>
-
-      <div class="space-y-3">
-        <div>
-          <label class="block text-xs font-semibold text-slate-400 mb-1">Issue Category</label>
-          <select id="cmpCategory" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:ring-2 focus:ring-blue-500 outline-none">
-            <option value="Campus Facilities">Campus Facilities (Water / AC / Electricity)</option>
-            <option value="Lab / Hardware">Lab / Broken Hardware</option>
-            <option value="Map Navigation Bug">Map Route / Incorrect Direction</option>
-            <option value="Cleanliness">Cleanliness / Hygiene</option>
-            <option value="Other">Other</option>
-          </select>
-        </div>
-
-        <div>
-          <label class="block text-xs font-semibold text-slate-400 mb-1">Location / Classroom / Lab</label>
-          <input id="cmpLocation" type="text" placeholder="e.g. CS Lab 3, 2nd Floor, Main Block" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:ring-2 focus:ring-blue-500 outline-none">
-        </div>
-
-        <div>
-          <label class="block text-xs font-semibold text-slate-400 mb-1">Problem Description</label>
-          <textarea id="cmpDesc" rows="3" placeholder="Samasya ka vivaran likhein..." class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:ring-2 focus:ring-blue-500 outline-none"></textarea>
-        </div>
-      </div>
-
-      <p id="cmpStatus" class="text-xs mt-3 hidden font-semibold"></p>
-
-      <div class="mt-5 flex gap-2 justify-end border-t border-slate-800 pt-3">
-        <button onclick="closeComplaintModal()" class="px-4 py-2 border border-slate-700 rounded-lg text-sm text-slate-300 hover:bg-slate-800">Cancel</button>
-        <button onclick="submitComplaint()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-semibold transition">Submit Ticket</button>
-      </div>
+  <!-- Complaint Modal -->
+  <div id="cmpModal" class="fixed inset-0 bg-black/70 hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-slate-800 p-5 rounded-xl max-w-sm w-full space-y-3">
+      <h3 class="font-bold text-base">Report Campus Issue</h3>
+      <input id="cmpLoc" type="text" placeholder="Location / Lab" class="w-full bg-slate-900 border border-slate-700 p-2 text-sm rounded outline-none">
+      <textarea id="cmpText" placeholder="Samasya likhein..." class="w-full bg-slate-900 border border-slate-700 p-2 text-sm rounded outline-none"></textarea>
+      <button onclick="sendComplaint()" class="w-full bg-amber-600 p-2 text-sm rounded font-bold">Submit</button>
+      <button onclick="document.getElementById('cmpModal').classList.add('hidden')" class="w-full text-xs text-slate-400">Close</button>
     </div>
   </div>
 
-  <!-- ========================================== -->
-  <!-- 📜 JAVASCRIPT: LIVE GPS + MAP + ROUTING    -->
-  <!-- ========================================== -->
   <script>
-    const locationsData = {{ locations|tojson }};
-    let currentAdmissionNo = null;
+    const LOCATIONS = {{ locations|tojson }};
+    const GATE = [28.4738, 77.4882];
+    let routeLine = null;
 
-    // GL Bajaj Main Gate (Default fallback location)
-    const MAIN_GATE = [28.4738, 77.4882];
-    let userCurrentLocation = null; // Stored user GPS [lat, lng]
-    let userMarker = null;
-    let userAccuracyCircle = null;
-    let currentRouteLine = null;
-    let activeDestination = null;
-
-    // 1. Initialize Map
     const map = L.map('map').setView([28.4728, 77.4897], 18);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-      attribution: '© OpenStreetMap contributors'
-    }).addTo(map);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-    // Main Gate Marker
-    const gateMarker = L.marker(MAIN_GATE).addTo(map);
-    gateMarker.bindPopup("<b>📍 Campus Main Entrance (Gate 1)</b>");
+    L.marker(GATE).addTo(map).bindPopup("<b>Campus Main Gate</b>");
 
-    // Custom Live User Pulse Marker
-    const userPulseIcon = L.divIcon({
-      className: 'user-pulse-dot',
-      iconSize: [18, 18],
-      iconAnchor: [9, 9]
-    });
-
-    // 2. LIVE GPS TRACKING
-    function startLiveTracking() {
-      if (!navigator.geolocation) {
-        document.getElementById('routeSourceText').innerText = "From: Campus Main Gate";
-        return;
-      }
-
-      navigator.geolocation.watchPosition(
-        (position) => {
-          const lat = position.coords.latitude;
-          const lng = position.coords.longitude;
-          const accuracy = position.coords.accuracy;
-
-          userCurrentLocation = [lat, lng];
-          document.getElementById('routeSourceText').innerText = "From: Your Live GPS 📍";
-          document.getElementById('gpsIcon').innerText = "🟢";
-          document.getElementById('gpsText').innerText = "Live Location On";
-
-          // Update or Create Marker
-          if (!userMarker) {
-            userMarker = L.marker([lat, lng], { icon: userPulseIcon }).addTo(map);
-            userMarker.bindPopup("<b>You are here!</b><br><span style='font-size:11px;color:#64748b;'>Live tracking active</span>");
-            userAccuracyCircle = L.circle([lat, lng], { radius: accuracy, color: '#3b82f6', weight: 1, opacity: 0.3, fillOpacity: 0.08 }).addTo(map);
-          } else {
-            userMarker.setLatLng([lat, lng]);
-            userAccuracyCircle.setLatLng([lat, lng]);
-            userAccuracyCircle.setRadius(accuracy);
-          }
-
-          // Agar user chal raha hai aur rasta active hai, toh rasta auto-update karein
-          if (activeDestination) {
-            renderRoute(activeDestination.lat, activeDestination.lng, activeDestination.name, activeDestination.desc);
-          }
-        },
-        (error) => {
-          console.warn("GPS error / permission denied:", error.message);
-          document.getElementById('routeSourceText').innerText = "From: Campus Main Gate (GPS Off)";
-          document.getElementById('gpsIcon').innerText = "⚠️";
-          document.getElementById('gpsText').innerText = "GPS Disabled";
-        },
-        {
-          enableHighAccuracy: true,
-          maximumAge: 5000,
-          timeout: 10000
-        }
-      );
-    }
-
-    // Manual Locate Me Button
-    function locateMe() {
-      if (userCurrentLocation) {
-        map.flyTo(userCurrentLocation, 19, { animate: true });
-        if (userMarker) userMarker.openPopup();
-      } else {
-        alert("GPS location abhi load ho rahi hai. Kripya browser me Location Permission 'Allow' karein.");
-      }
-    }
-
-    // 3. Dynamic Route Rendering (From GPS if available, else Gate)
-    function renderRoute(destLat, destLng, destName, desc) {
-      activeDestination = { lat: destLat, lng: destLng, name: destName, desc: desc };
-
-      if (currentRouteLine) {
-        map.removeLayer(currentRouteLine);
-      }
-
-      // Start point decide karein (Live Location ya Main Gate)
-      const startPoint = userCurrentLocation ? userCurrentLocation : MAIN_GATE;
-      const startLabel = userCurrentLocation ? "Your Live Location" : "Campus Main Gate";
-
-      // Pathway calculate
-      const midPoint = [(startPoint[0] + destLat) / 2, (startPoint[1] + destLng) / 2];
-      const routePoints = [startPoint, midPoint, [destLat, destLng]];
-
-      // Blue dashed navigation line
-      currentRouteLine = L.polyline(routePoints, {
-        color: '#2563eb',
-        weight: 6,
-        opacity: 0.9,
-        dashArray: '10, 8',
-        lineCap: 'round'
+    function goTo(lat, lng, name, desc) {
+      if(routeLine) map.removeLayer(routeLine);
+      routeLine = L.polyline([GATE, [(GATE[0]+lat)/2, (GATE[1]+lng)/2], [lat, lng]], {
+        color: '#3b82f6', weight: 5, dashArray: '6, 6'
       }).addTo(map);
-
-      map.fitBounds(currentRouteLine.getBounds(), { padding: [60, 60] });
-
-      L.popup()
-        .setLatLng([destLat, destLng])
-        .setContent(`
-          <div style="font-family:sans-serif; min-width:180px;">
-            <b style="font-size:14px; color:#1e3a8a;">${destName}</b>
-            <p style="font-size:11px; color:#475569; margin:4px 0;">${desc}</p>
-            <div style="margin-top:6px; padding:4px 8px; background:#eff6ff; border-left:3px solid #2563eb; font-size:11px; color:#1d4ed8;">
-              🚶 <b>Live Route:</b> ${startLabel} se follow karein.
-            </div>
-          </div>
-        `)
-        .openOn(map);
+      map.fitBounds(routeLine.getBounds(), { padding: [40, 40] });
+      L.popup().setLatLng([lat, lng]).setContent(`<b>${name}</b><br><small>${desc}</small>`).openOn(map);
     }
 
-    // 4. Markers & Navigation Chips
-    const chipsBox = document.getElementById('locationChips');
-    for (const [key, loc] of Object.entries(locationsData)) {
-      const marker = L.marker([loc.lat, loc.lng]).addTo(map);
-      marker.bindPopup(`<b>${loc.name}</b><br><span style="color:#64748b">${loc.desc}</span>`);
+    const bBox = document.getElementById('buttonsList');
+    for(let k in LOCATIONS) {
+      let l = LOCATIONS[k];
+      let m = L.marker([l.lat, l.lng]).addTo(map);
+      m.bindPopup(`<b>${l.name}</b>`);
+      m.on('click', () => goTo(l.lat, l.lng, l.name, l.desc));
 
-      marker.on('click', () => {
-        renderRoute(loc.lat, loc.lng, loc.name, loc.desc);
+      let btn = document.createElement('button');
+      btn.className = "text-[11px] bg-slate-800 border border-slate-600 px-2 py-1 rounded";
+      btn.innerText = l.name.split('(')[0];
+      btn.onclick = () => goTo(l.lat, l.lng, l.name, l.desc);
+      bBox.appendChild(btn);
+    }
+
+    let savedAdm = "";
+    async function getOtp() {
+      savedAdm = document.getElementById('admNo').value.trim().toUpperCase();
+      let res = await fetch('/send-otp', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ admission_no: savedAdm })
       });
-
-      const chip = document.createElement('button');
-      chip.className = "text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-2.5 py-1 rounded-lg transition text-left flex items-center gap-1";
-      chip.innerHTML = `<span>📍</span> <span>${loc.name.split('(')[0].trim()}</span>`;
-      chip.onclick = () => {
-        renderRoute(loc.lat, loc.lng, loc.name, loc.desc);
-      };
-      chipsBox.appendChild(chip);
+      let d = await res.json();
+      if(d.success) {
+        document.getElementById('otpBox').classList.remove('hidden');
+        document.getElementById('otpMsg').innerText = d.message;
+        document.getElementById('userOtp').value = d.fallback_otp || '';
+      } else alert(d.message);
     }
 
-    // Start GPS Tracking as soon as page loads
-    window.addEventListener('load', startLiveTracking);
-
-    // 5. Authentication Functions
-    function openLoginModal() {
-      document.getElementById('loginModal').classList.remove('hidden');
-      document.getElementById('loginModal').classList.add('flex');
+    async function doLogin() {
+      let otp = document.getElementById('userOtp').value.trim();
+      let res = await fetch('/verify-otp', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ admission_no: savedAdm, otp: otp })
+      });
+      let d = await res.json();
+      if(d.success) {
+        document.getElementById('loginModal').classList.add('hidden');
+        document.getElementById('loginBtn').innerText = d.user.name;
+        document.getElementById('loginBtn').className = "bg-emerald-600 text-xs px-3 py-1.5 rounded-lg";
+      } else alert(d.message);
     }
 
-    function closeLoginModal() {
-      document.getElementById('loginModal').classList.add('hidden');
-      document.getElementById('loginModal').classList.remove('flex');
-      document.getElementById('authError').classList.add('hidden');
-    }
-
-    function backToStep1() {
-      document.getElementById('otpStep1').classList.remove('hidden');
-      document.getElementById('otpStep2').classList.add('hidden');
-      document.getElementById('authError').classList.add('hidden');
-    }
-
-    async function sendOtpRequest() {
-      const admissionNo = document.getElementById('admissionInput').value.trim().toUpperCase();
-      const errBox = document.getElementById('authError');
-      errBox.classList.add('hidden');
-
-      if (!admissionNo) {
-        errBox.innerText = "Kripya Admission Number daalein.";
-        errBox.classList.remove('hidden');
-        return;
-      }
-
-      try {
-        const res = await fetch('/send-otp', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ admission_no: admissionNo })
-        });
-        const data = await res.json();
-
-        if (data.success) {
-          currentAdmissionNo = admissionNo;
-          document.getElementById('otpNotice').innerText = data.message;
-          document.getElementById('otpStep1').classList.add('hidden');
-          document.getElementById('otpStep2').classList.remove('hidden');
-          if (data.fallback_otp) {
-            document.getElementById('otpCodeInput').value = data.fallback_otp;
-          }
-        } else {
-          errBox.innerText = data.message;
-          errBox.classList.remove('hidden');
-        }
-      } catch (err) {
-        errBox.innerText = "Server connection error.";
-        errBox.classList.remove('hidden');
-      }
-    }
-
-    async function verifyOtpRequest() {
-      const otp = document.getElementById('otpCodeInput').value.trim();
-      const errBox = document.getElementById('authError');
-      errBox.classList.add('hidden');
-
-      if (!otp) {
-        errBox.innerText = "Kripya 6-digit OTP daalein.";
-        errBox.classList.remove('hidden');
-        return;
-      }
-
-      try {
-        const res = await fetch('/verify-otp', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ admission_no: currentAdmissionNo, otp: otp })
-        });
-        const data = await res.json();
-
-        if (data.success) {
-          closeLoginModal();
-          document.getElementById('authContainer').innerHTML = `
-            <div class="text-xs bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-lg text-emerald-400 font-semibold flex items-center gap-1.5">
-              <span>👤</span> ${data.user.name} (${currentAdmissionNo})
-            </div>
-          `;
-        } else {
-          errBox.innerText = data.message;
-          errBox.classList.remove('hidden');
-        }
-      } catch (err) {
-        errBox.innerText = "Server connection error.";
-        errBox.classList.remove('hidden');
-      }
-    }
-
-    // 6. Grievance Functions
-    function openComplaintModal() {
-      document.getElementById('complaintModal').classList.remove('hidden');
-      document.getElementById('complaintModal').classList.add('flex');
-    }
-
-    function closeComplaintModal() {
-      document.getElementById('complaintModal').classList.add('hidden');
-      document.getElementById('complaintModal').classList.remove('flex');
-      document.getElementById('cmpStatus').classList.add('hidden');
-      document.getElementById('cmpDesc').value = '';
-      document.getElementById('cmpLocation').value = '';
-    }
-
-    async function submitComplaint() {
-      const category = document.getElementById('cmpCategory').value;
-      const location = document.getElementById('cmpLocation').value.trim();
-      const description = document.getElementById('cmpDesc').value.trim();
-      const statusBox = document.getElementById('cmpStatus');
-
-      if (!description) {
-        statusBox.innerText = "Kripya samasya ka vivaran likhein.";
-        statusBox.className = "text-xs mt-3 font-semibold text-red-400 block";
-        return;
-      }
-
-      statusBox.innerText = "Submitting ticket...";
-      statusBox.className = "text-xs mt-3 font-semibold text-blue-400 block";
-
-      try {
-        const res = await fetch('/submit-complaint', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            admission_no: currentAdmissionNo ? currentAdmissionNo : "25116CN001",
-            category: category,
-            location: location,
-            description: description
-          })
-        });
-        const data = await res.json();
-
-        if (data.success) {
-          statusBox.innerHTML = `✅ ${data.message} <br><span class="font-mono text-emerald-300 font-bold">Ticket ID: ${data.ticket_id}</span>`;
-          statusBox.className = "text-xs mt-3 font-semibold text-emerald-400 block";
-          setTimeout(() => closeComplaintModal(), 2500);
-        } else {
-          statusBox.innerText = data.message;
-          statusBox.className = "text-xs mt-3 font-semibold text-red-400 block";
-        }
-      } catch (err) {
-        statusBox.innerText = "Server connection error.";
-        statusBox.className = "text-xs mt-3 font-semibold text-red-400 block";
-      }
+    async function sendComplaint() {
+      let desc = document.getElementById('cmpText').value.trim();
+      let loc = document.getElementById('cmpLoc').value.trim();
+      if(!desc) return alert("Vivaran likhein");
+      let res = await fetch('/submit-complaint', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ description: desc, location: loc, admission_no: savedAdm || "Guest" })
+      });
+      let d = await res.json();
+      alert(d.message);
+      document.getElementById('cmpModal').classList.add('hidden');
     }
   </script>
 </body>
