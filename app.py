@@ -1,6 +1,7 @@
 import random
 import time
 import smtplib
+import datetime
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from flask import Flask, render_template, request, jsonify
@@ -8,7 +9,7 @@ from flask import Flask, render_template, request, jsonify
 app = Flask(__name__)
 
 # Yahan apna Gmail aur 16-digit App Password daalein (Bina space ke ya space ke sath chalega)
-SENDER_EMAIL = "sfrl khsi gaso roni"
+SENDER_EMAIL = "adarshkumar83503@gmail.com "
 SENDER_APP_PASSWORD = "sfrl khsi gaso roni" 
 
 STUDENTS_DB = {
@@ -19,6 +20,7 @@ STUDENTS_DB = {
 }
 
 OTP_STORE = {}
+COMPLAINTS_DB = []
 
 CAMPUS_DATA = {
     # Existing default entries
@@ -372,6 +374,58 @@ def chat():
         return jsonify({"reply": reply_text, "lat": matched["lat"], "lng": matched["lng"]})
 
     return jsonify({"reply": "Location nahi mili. Library, Canteen ya Lab try karein.", "lat": None, "lng": None})
+# -----------------------------------------------------------
+# ⚠️ COMPLAINT & ADMIN ROUTES
+# -----------------------------------------------------------
 
+@app.route("/submit-complaint", methods=["POST"])
+def submit_complaint():
+    data = request.json or {}
+    admission_no = data.get("admission_no", "Guest Student")
+    category = data.get("category", "General")
+    location = data.get("location", "Not Specified")
+    description = data.get("description", "").strip()
+
+    if not description:
+        return jsonify({"success": False, "message": "Kripya samasya ka vivaran likhein."})
+
+    ticket_id = f"GLB-CMP-{random.randint(1000, 9999)}"
+    timestamp = datetime.datetime.now().strftime("%d %b %Y, %I:%M %p")
+
+    new_record = {
+        "ticket_id": ticket_id,
+        "admission_no": admission_no,
+        "category": category,
+        "location": location,
+        "description": description,
+        "status": "Pending Review",
+        "created_at": timestamp
+    }
+    COMPLAINTS_DB.append(new_record)
+
+    print(f"\n🚨 [COMPLAINT LOGGED] {ticket_id} by {admission_no}: {description}\n", flush=True)
+
+    return jsonify({
+        "success": True,
+        "message": "Aapki complaint safaltapoorvak darj kar li gayi hai!",
+        "ticket_id": ticket_id
+    })
+
+@app.route("/admin")
+def admin_dashboard():
+    return render_template("admin.html", complaints=reversed(COMPLAINTS_DB))
+
+@app.route("/api/complaints/update-status", methods=["POST"])
+def update_complaint_status():
+    data = request.json or {}
+    ticket_id = data.get("ticket_id")
+    new_status = data.get("status")
+
+    for cmp in COMPLAINTS_DB:
+        if cmp["ticket_id"] == ticket_id:
+            cmp["status"] = new_status
+            return jsonify({"success": True})
+
+    return jsonify({"success": False, "message": "Ticket nahi mila"}), 404
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
