@@ -1,159 +1,269 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AI Campus Guide & Navigator</title>
-  <script src="https://cdn.tailwindcss.com"></script> 
-  
-  
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GL Bajaj AI Campus Guide & Navigator</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Leaflet CSS & JS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-  <!-- Leaflet Routing Machine -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
-  <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
-
   <style>
-    .leaflet-routing-container {
-      background-color: pink;
-      padding: 10px;
-      border-radius: 8px;
-      box-shadow: 0 6px 8px -2px rgba(0, 0, 0, 0.1);
-      max-height: 200px;
-      overflow-y: auto;
-      font-size: 12px;
+    #map {
+      height: calc(100vh - 70px);
+      width: 100%;
+      z-index: 10;
     }
   </style>
 </head>
-<body class="bg-gray-100 h-screen flex flex-col md:flex-row overflow-hidden font-sans relative">
+<body class="bg-slate-900 text-slate-100 flex flex-col h-screen overflow-hidden font-sans">
 
-  <div id="loginModal" class="fixed inset-0 bg-slate-900/90 backdrop-blur-md flex items-center justify-center p-4" style="z-index: 99999 !important;">
-    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 text-center relative" style="z-index: 100000 !important;">
-      
-      <div class="w-14 h-14 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl font-bold">
-        🛡️
+  <!-- ========================================== -->
+  <!-- 🧭 NAVBAR                                   -->
+  <!-- ========================================== -->
+  <header class="h-[70px] bg-slate-900/90 backdrop-blur border-b border-slate-800 px-4 md:px-8 flex items-center justify-between z-20">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center font-bold text-white text-lg shadow-lg shadow-blue-500/30">
+        GL
       </div>
-      <h2 class="text-xl font-bold text-gray-800">Student Portal Login</h2>
-      <p class="text-xs text-gray-500 mt-1">Admission No. daal kar registered email OTP se verify karein.</p>
-
- 
-      <div id="stepAdmission" class="mt-5 text-left">
-        <label class="block text-xs font-semibold text-gray-700 mb-1">Admission Number</label>
-        <input id="admissionInput" type="text" placeholder="e.g. GLB2023001" 
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 uppercase font-mono"
-          onkeydown="if(event.key==='Enter') requestOtp()" />
-        <button onclick="requestOtp()" class="w-full mt-3 bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg text-sm font-semibold transition">
-          Send OTP to Email ➔
-        </button>
-      </div>
-      <div id="stepOtp" class="mt-5 text-left hidden">
-        <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 text-center mb-3">
-          <p id="emailSentMsg" class="text-xs text-blue-800 font-medium"></p>
-          <p class="text-[11px] text-gray-500 mt-0.5">Apna Gmail Inbox / Spam folder check karein.</p>
-        </div>
-
-        <div class="flex justify-between items-center mb-1">
-          <label class="block text-xs font-semibold text-gray-700">Enter 6-Digit Email OTP</label>
-          <button onclick="backToAdmission()" class="text-[11px] text-blue-600 hover:underline">Change ID</button>
-        </div>
-        <input id="otpInput" type="text" maxlength="6" placeholder="• • • • • •" 
-          class="w-full text-center tracking-widest text-lg font-bold border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
-          onkeydown="if(event.key==='Enter') submitOtp()" />
-        
-        <button onclick="submitOtp()" class="w-full mt-3 bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-lg text-sm font-semibold transition">
-        </button>
-      </div>
-
-      <!-- Error Message -->
-      <p id="authError" class="text-xs text-red-500 mt-2.5 hidden font-medium"></p>
-
-      <div class="mt-4 pt-3 border-t text-[11px] text-gray-400">
-        Demo Registered ID: <span class="font-mono font-semibold text-gray-600">GLB2023001</span>
-      </div>
-    </div>
-  </div>
-
-  <div class="w-full md:w-1/3 bg-white flex flex-col border-r shadow-lg h-1/2 md:h-full z-10">
-    <div class="p-4 bg-blue-600 text-white flex justify-between items-center shadow-sm">
       <div>
-        <h1 class="text-lg font-bold">🧭 AI Campus Guide
-          
-        </h2>
-        <p id="studentBadge" class="text-xs text-blue-100">Verification Pending</p>
-      </div>
-      <span class="text-xs bg-blue-700 px-2.5 py-1 rounded-full font-medium">GL Bajaj</span>
-    </div>
-
-    <div class="p-3 bg-gray-50 border-b flex gap-2 overflow-x-auto text-xs">
-      <button onclick="sendQuick('Where is the library?')" class="bg-blue-100 hover:bg-blue-200 text-blue-800 px-3 py-1.5 rounded-full whitespace-nowrap transition">📚 Library</button>
-      <button onclick="sendQuick('How to reach the computer lab?')" class="bg-blue-100 hover:bg-blue-200 text-blue-800 px-3 py-1.5 rounded-full whitespace-nowrap transition">💻 CS Lab</button>
-      <button onclick="sendQuick('Where is the canteen?')" class="bg-blue-100 hover:bg-blue-200 text-blue-800 px-3 py-1.5 rounded-full whitespace-nowrap transition">🍔 Canteen</button>
-      <button onclick="sendQuick('Where is the placement cell?')" class="bg-blue-100 hover:bg-blue-200 text-blue-800 px-3 py-1.5 rounded-full whitespace-nowrap transition">🏢 Placement</button>
-    </div>
-
-    <div id="chatbox" class="flex-1 p-4 overflow-y-auto space-y-3 text-sm">
-      <div class="bg-gray-200 text-gray-800 p-3 rounded-xl max-w-[85%] leading-relaxed">
-        Hello Doston! 👋 Email OTP verify hone ke baad aap kisi bhi campus location ko search karein, map par live route ban jayega.
+        <h1 class="text-base md:text-lg font-bold tracking-tight text-white flex items-center gap-2">
+          Campus Guide <span class="text-xs px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30">AI Navigator</span>
+        </h1>
+        <p class="text-xs text-slate-400 hidden sm:block">GL Bajaj Institute of Technology & Management</p>
       </div>
     </div>
 
-    <div class="p-3 border-t flex gap-2 bg-white">
-      <input id="userInput" type="text" placeholder="Search destination (e.g. library)..." class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" onkeydown="if(event.key==='Enter') sendMessage()" />
-      <button onclick="sendMessage()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition">Send</button>
+    <!-- Action Buttons -->
+    <div class="flex items-center gap-2 sm:gap-3">
+      <!-- Report Issue Button -->
+      <button onclick="openComplaintModal()" class="text-xs bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 px-3 py-1.5 rounded-lg font-semibold transition flex items-center gap-1.5 shadow-sm">
+        <span>⚠️</span>
+        <span>Report Issue</span>
+      </button>
+
+      <!-- Admin Dashboard Link -->
+      <a href="/admin" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 px-3 py-1.5 rounded-lg font-medium transition hidden sm:inline-flex items-center gap-1">
+        ⚙️ Admin
+      </a>
+
+      <!-- Student Login Button Container -->
+      <div id="authContainer">
+        <button id="loginBtn" onclick="openLoginModal()" class="text-xs bg-blue-600 hover:bg-blue-500 text-white px-3.5 py-1.5 rounded-lg font-semibold shadow-md shadow-blue-600/30 transition flex items-center gap-1.5">
+          <span>Student Login</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================== -->
+  <!-- 🗺️ MAP & SIDEBAR CHIPS                      -->
+  <!-- ========================================== -->
+  <div class="flex-1 relative flex">
+    <div id="map"></div>
+
+    <!-- Quick Location Chips -->
+    <div class="absolute top-4 left-4 z-[400] max-w-sm w-full bg-slate-900/85 backdrop-blur-md p-3 rounded-2xl border border-slate-800 shadow-xl space-y-2 pointer-events-auto">
+      <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Quick Navigate</div>
+      <div class="flex flex-wrap gap-1.5" id="locationChips"></div>
     </div>
   </div>
 
-  <div class="w-full md:w-2/3 h-1/2 md:h-full relative">
-    <div id="map" class="w-full h-full"></div>
+  <!-- ========================================== -->
+  <!-- 🔐 STUDENT LOGIN MODAL                     -->
+  <!-- ========================================== -->
+  <div id="loginModal" class="fixed inset-0 bg-black/75 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+    <div class="bg-slate-900 border border-slate-800 text-white rounded-2xl shadow-2xl max-w-sm w-full p-6 relative">
+      <button onclick="closeLoginModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg">✕</button>
+
+      <div class="text-center mb-5">
+        <div class="w-12 h-12 bg-blue-600/20 border border-blue-500/30 rounded-2xl flex items-center justify-center text-blue-400 text-xl mx-auto mb-2">
+          🛡️
+        </div>
+        <h2 class="text-lg font-bold">Student Portal Login</h2>
+        <p class="text-xs text-slate-400">Admission No. daal kar registered email OTP se verify karein.</p>
+      </div>
+
+      <!-- Step 1: Admission Input -->
+      <div id="otpStep1" class="space-y-3">
+        <div>
+          <label class="block text-xs font-medium text-slate-400 mb-1">Admission Number</label>
+          <input id="admissionInput" type="text" placeholder="e.g. 25116CN001" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:ring-2 focus:ring-blue-500 outline-none uppercase font-mono">
+        </div>
+        <button onclick="sendOtpRequest()" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-2 rounded-lg text-sm font-semibold transition">
+          Send OTP
+        </button>
+      </div>
+
+      <!-- Step 2: OTP Input -->
+      <div id="otpStep2" class="space-y-3 hidden">
+        <div id="otpNotice" class="text-xs bg-slate-800 border border-slate-700 p-2.5 rounded-lg text-slate-300"></div>
+
+        <div>
+          <div class="flex justify-between items-center mb-1">
+            <label class="text-xs font-medium text-slate-400">Enter 6-Digit Email OTP</label>
+            <button onclick="backToStep1()" class="text-[11px] text-blue-400 hover:underline">Change ID</button>
+          </div>
+          <input id="otpCodeInput" type="text" maxlength="6" placeholder="• • • • • •" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-center text-lg tracking-widest text-white focus:ring-2 focus:ring-blue-500 outline-none font-mono">
+        </div>
+
+        <button onclick="verifyOtpRequest()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-2 rounded-lg text-sm font-semibold transition">
+          Verify & Access
+        </button>
+      </div>
+
+      <p id="authError" class="text-xs text-red-400 mt-3 text-center hidden"></p>
+      <div class="mt-4 text-center">
+        <span class="text-[11px] text-slate-500">Registered Test ID: <span class="font-mono text-slate-400">25116CN001</span></span>
+      </div>
+    </div>
   </div>
 
+  <!-- ========================================== -->
+  <!-- ⚠️ COMPLAINT / GRIEVANCE MODAL             -->
+  <!-- ========================================== -->
+  <div id="complaintModal" class="fixed inset-0 bg-black/75 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+    <div class="bg-slate-900 border border-slate-800 text-white rounded-2xl shadow-2xl max-w-md w-full p-6 relative">
+      <div class="flex justify-between items-center mb-4 border-b border-slate-800 pb-3">
+        <div>
+          <h2 class="text-lg font-bold text-white flex items-center gap-2">
+            <span>⚠️</span> Campus Grievance / Report
+          </h2>
+          <p class="text-xs text-slate-400">Campus ya map sambandhit samasya darj karein</p>
+        </div>
+        <button onclick="closeComplaintModal()" class="text-slate-400 hover:text-white text-lg font-bold">✕</button>
+      </div>
+
+      <div class="space-y-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 mb-1">Issue Category</label>
+          <select id="cmpCategory" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:ring-2 focus:ring-blue-500 outline-none">
+            <option value="Campus Facilities">Campus Facilities (Water / AC / Electricity)</option>
+            <option value="Lab / Hardware">Lab / Broken Hardware</option>
+            <option value="Map Navigation Bug">Map Route / Incorrect Direction</option>
+            <option value="Cleanliness">Cleanliness / Hygiene</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 mb-1">Location / Classroom / Lab</label>
+          <input id="cmpLocation" type="text" placeholder="e.g. CS Lab 3, 2nd Floor, Main Block" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:ring-2 focus:ring-blue-500 outline-none">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 mb-1">Problem Description</label>
+          <textarea id="cmpDesc" rows="3" placeholder="Samasya ka vivaran likhein..." class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:ring-2 focus:ring-blue-500 outline-none"></textarea>
+        </div>
+      </div>
+
+      <p id="cmpStatus" class="text-xs mt-3 hidden font-semibold"></p>
+
+      <div class="mt-5 flex gap-2 justify-end border-t border-slate-800 pt-3">
+        <button onclick="closeComplaintModal()" class="px-4 py-2 border border-slate-700 rounded-lg text-sm text-slate-300 hover:bg-slate-800">Cancel</button>
+        <button onclick="submitComplaint()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-semibold transition">Submit Ticket</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- 📜 JAVASCRIPT (MAP + AUTH + COMPLAINTS)    -->
+  <!-- ========================================== -->
   <script>
-    let isAuthenticated = false;
-    
-    let currentAdmissionNo = "";
-    async function requestOtp() {
-      const input = document.getElementById('admissionInput');
-      const errBox = document.getElementById('authError');
-      currentAdmissionNo = input.value.trim().toUpperCase();
+    // 1. Locations from Flask backend
+    const locationsData = {{ locations|tojson }};
+    let currentAdmissionNo = null;
 
-      if (!currentAdmissionNo) {
-        errBox.innerText = "Kripya Admission Number darj karein.";
+    // Initialize Leaflet Map
+    const map = L.map('map').setView([28.4728, 77.4897], 18);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Setup Markers and Navigation Chips
+    const chipsBox = document.getElementById('locationChips');
+    for (const [key, loc] of Object.entries(locationsData)) {
+      const marker = L.marker([loc.lat, loc.lng]).addTo(map);
+      marker.bindPopup(`<b>${loc.name}</b><br><span style="color:#64748b">${loc.desc}</span>`);
+
+      const chip = document.createElement('button');
+      chip.className = "text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-2.5 py-1 rounded-lg transition";
+      chip.innerText = loc.name.split('(')[0].trim();
+      chip.onclick = () => {
+        map.flyTo([loc.lat, loc.lng], 19);
+        marker.openPopup();
+      };
+      chipsBox.appendChild(chip);
+    }
+
+    // 2. Authentication Logic
+    function openLoginModal() {
+      document.getElementById('loginModal').classList.remove('hidden');
+      document.getElementById('loginModal').classList.add('flex');
+    }
+
+    function closeLoginModal() {
+      document.getElementById('loginModal').classList.add('hidden');
+      document.getElementById('loginModal').classList.remove('flex');
+      document.getElementById('authError').classList.add('hidden');
+    }
+
+    function backToStep1() {
+      document.getElementById('otpStep1').classList.remove('hidden');
+      document.getElementById('otpStep2').classList.add('hidden');
+      document.getElementById('authError').classList.add('hidden');
+    }
+
+    async function sendOtpRequest() {
+      const admissionNo = document.getElementById('admissionInput').value.trim().toUpperCase();
+      const errBox = document.getElementById('authError');
+      errBox.classList.add('hidden');
+
+      if (!admissionNo) {
+        errBox.innerText = "Kripya Admission Number daalein.";
         errBox.classList.remove('hidden');
         return;
       }
-      errBox.classList.add('hidden');
 
       try {
         const res = await fetch('/send-otp', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ admission_no: currentAdmissionNo })
+          body: JSON.stringify({ admission_no: admissionNo })
         });
         const data = await res.json();
 
         if (data.success) {
-          document.getElementById('stepAdmission').classList.add('hidden');
-          document.getElementById('stepOtp').classList.remove('hidden');
-          document.getElementById('emailSentMsg').innerText = data.message;
-          document.getElementById('otpInput').value = ""; // Input blank rahega
-          document.getElementById('otpInput').focus();
+          currentAdmissionNo = admissionNo;
+          document.getElementById('otpNotice').innerText = data.message;
+          document.getElementById('otpStep1').classList.add('hidden');
+          document.getElementById('otpStep2').classList.remove('hidden');
+          
+          if (data.fallback_otp) {
+            document.getElementById('otpCodeInput').value = data.fallback_otp;
+          }
         } else {
           errBox.innerText = data.message;
           errBox.classList.remove('hidden');
         }
-      } catch (e) {
-        errBox.innerText = "Backend server connect nahi ho pa raha.";
+      } catch (err) {
+        errBox.innerText = "Server connection error.";
         errBox.classList.remove('hidden');
       }
     }
-    async function submitOtp() {
-      const otpInput = document.getElementById('otpInput');
-      const errBox = document.getElementById('authError');
-      const otp = otpInput.value.trim();
 
-      if (otp.length < 6) {
-        errBox.innerText = "Kripya 6-digit OTP enter karein.";
+    async function verifyOtpRequest() {
+      const otp = document.getElementById('otpCodeInput').value.trim();
+      const errBox = document.getElementById('authError');
+      errBox.classList.add('hidden');
+
+      if (!otp) {
+        errBox.innerText = "Kripya 6-digit OTP daalein.";
         errBox.classList.remove('hidden');
         return;
       }
@@ -167,142 +277,76 @@
         const data = await res.json();
 
         if (data.success) {
-          isAuthenticated = true;
-          document.getElementById('loginModal').classList.add('hidden');
-          document.getElementById('studentBadge').innerText = `Student: ${data.student_name}`;
-          appendMsg(`✅ ${data.message}! "hey there! Let's make campus life a bit easier.
-          Welcome to CAMPUS BOT."`, 'bot');
+          closeLoginModal();
+          document.getElementById('authContainer').innerHTML = `
+            <div class="text-xs bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-lg text-emerald-400 font-semibold flex items-center gap-1.5">
+              <span>👤</span> ${data.user.name} (${currentAdmissionNo})
+            </div>
+          `;
         } else {
           errBox.innerText = data.message;
           errBox.classList.remove('hidden');
         }
-      } catch (e) {
-        errBox.innerText = "Verification issue. Dobara try karein.";
+      } catch (err) {
+        errBox.innerText = "Server connection error.";
         errBox.classList.remove('hidden');
       }
     }
 
-    function backToAdmission() {
-      document.getElementById('stepOtp').classList.add('hidden');
-      document.getElementById('stepAdmission').classList.remove('hidden');
-      document.getElementById('authError').classList.add('hidden');
+    // 3. Grievance / Complaint Logic
+    function openComplaintModal() {
+      document.getElementById('complaintModal').classList.remove('hidden');
+      document.getElementById('complaintModal').classList.add('flex');
     }
 
-    let userLat = 28.4727;
-    let userLng = 77.4895;
-    let realTimeMarker = null;
-    let routingControl = null;
-    let activeDestination = null;
-
-    const map = L.map('map').setView([userLat, userLng], 17);
-
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap contributors'
-    }).addTo(map);
-
-    const locations = {{ locations | tojson }};
-    for (let key in locations) {
-      const loc = locations[key];
-      L.marker([loc.lat, loc.lng]).addTo(map)
-        .bindPopup(`<b>${loc.name}</b><br>${loc.desc || ''}`);
+    function closeComplaintModal() {
+      document.getElementById('complaintModal').classList.add('hidden');
+      document.getElementById('complaintModal').classList.remove('flex');
+      document.getElementById('cmpStatus').classList.add('hidden');
+      document.getElementById('cmpDesc').value = '';
+      document.getElementById('cmpLocation').value = '';
     }
 
-    if (navigator.geolocation) {
-      navigator.geolocation.watchPosition(
-        (pos) => {
-          userLat = pos.coords.latitude;
-          userLng = pos.coords.longitude;
+    async function submitComplaint() {
+      const category = document.getElementById('cmpCategory').value;
+      const location = document.getElementById('cmpLocation').value.trim();
+      const description = document.getElementById('cmpDesc').value.trim();
+      const statusBox = document.getElementById('cmpStatus');
 
-          if (!realTimeMarker) {
-            realTimeMarker = L.circleMarker([userLat, userLng], {
-              radius: 9,
-              fillColor: "#2563eb",
-              color: "#ffffff",
-              weight: 3,
-              fillOpacity: 1
-            }).addTo(map).bindPopup("📍 <b>Aap Yahan Hain</b>").openPopup();
-          } else {
-            realTimeMarker.setLatLng([userLat, userLng]);
-          }
-
-          if (isAuthenticated && activeDestination && routingControl) {
-            routingControl.setWaypoints([
-              L.latLng(userLat, userLng),
-              L.latLng(activeDestination.lat, activeDestination.lng)
-            ]);
-          }
-        },
-        (err) => console.warn("GPS Tracking Warning:", err.message),
-        { enableHighAccuracy: true, maximumAge: 1000, timeout: 10000 }
-      );
-    }
-
-    function drawRouteTo(destLat, destLng) {
-      if (!isAuthenticated) return;
-      activeDestination = { lat: destLat, lng: destLng };
-
-      if (routingControl) {
-        map.removeControl(routingControl);
-      }
-
-      routingControl = L.Routing.control({
-        waypoints: [
-          L.latLng(userLat, userLng),
-          L.latLng(destLat, destLng)
-        ],
-        routeWhileDragging: false,
-        addWaypoints: false,
-        show: true,
-        lineOptions: {
-          styles: [{ color: '#2563eb', weight: 6, opacity: 0.85 }]
-        }
-      }).addTo(map);
-    }
- 
-    async function sendMessage() {
-      if (!isAuthenticated) {
-        alert("Pehle email OTP verify karein!");
+      if (!description) {
+        statusBox.innerText = "Kripya samasya ka vivaran likhein.";
+        statusBox.className = "text-xs mt-3 font-semibold text-red-400 block";
         return;
       }
 
-      const input = document.getElementById('userInput');
-      const text = input.value.trim();
-      if (!text) return;
-
-      appendMsg(text, 'user');
-      input.value = '';
+      statusBox.innerText = "Submitting ticket...";
+      statusBox.className = "text-xs mt-3 font-semibold text-blue-400 block";
 
       try {
-        const res = await fetch('/chat', {
+        const res = await fetch('/submit-complaint', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: text })
+          body: JSON.stringify({
+            admission_no: currentAdmissionNo ? currentAdmissionNo : "25116CN001",
+            category: category,
+            location: location,
+            description: description
+          })
         });
         const data = await res.json();
-        appendMsg(data.reply, 'bot');
 
-        if (data.lat && data.lng) {
-          drawRouteTo(data.lat, data.lng);
+        if (data.success) {
+          statusBox.innerHTML = `✅ ${data.message} <br><span class="font-mono text-emerald-300 font-bold">Ticket ID: ${data.ticket_id}</span>`;
+          statusBox.className = "text-xs mt-3 font-semibold text-emerald-400 block";
+          setTimeout(() => closeComplaintModal(), 2500);
+        } else {
+          statusBox.innerText = data.message;
+          statusBox.className = "text-xs mt-3 font-semibold text-red-400 block";
         }
       } catch (err) {
-        appendMsg('Server connection error.', 'bot');
+        statusBox.innerText = "Server connection error.";
+        statusBox.className = "text-xs mt-3 font-semibold text-red-400 block";
       }
-    }
-
-    function sendQuick(query) {
-      document.getElementById('userInput').value = query;
-      sendMessage();
-    }
-
-    function appendMsg(msg, sender) {
-      const box = document.getElementById('chatbox');
-      const div = document.createElement('div');
-      div.className = sender === 'user' 
-        ? 'ml-auto bg-blue-600 text-white p-3 rounded-xl max-w-[85%] text-sm'
-        : 'bg-gray-200 text-gray-800 p-3 rounded-xl max-w-[85%] text-sm whitespace-pre-line leading-relaxed';
-      div.innerText = msg;
-      box.appendChild(div);
-      box.scrollTop = box.scrollHeight;
     }
   </script>
 </body>
