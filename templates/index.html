@@ -1,9 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GL Bajaj CampusGuide | 360° Live Navigator</title>
+  <title>GL Bajaj CampusGuide | 360° Smart Portal</title>
 
   <!-- Tailwind CSS & Leaflet -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -13,12 +14,10 @@
 
   <style>
     body { font-family: 'Plus Jakarta Sans', sans-serif; }
-    #map { height: calc(100vh - 72px); width: 100%; z-index: 10; }
-    
-    /* Live User Pulsing Location Marker */
+    #map { height: calc(100vh - 75px); width: 100%; z-index: 10; }
     .user-live-pin {
-      width: 20px;
-      height: 20px;
+      width: 18px;
+      height: 18px;
       background: #3b82f6;
       border: 3px solid #ffffff;
       border-radius: 50%;
@@ -27,7 +26,7 @@
     }
     @keyframes userPulse {
       0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); }
-      70% { box-shadow: 0 0 0 16px rgba(59, 130, 246, 0); }
+      70% { box-shadow: 0 0 0 14px rgba(59, 130, 246, 0); }
       100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
     }
   </style>
@@ -35,69 +34,70 @@
 <body class="bg-slate-950 text-slate-100 flex flex-col h-screen overflow-hidden">
 
   <!-- ================= TOP NAVBAR ================= -->
-  <header class="h-[72px] bg-slate-950/90 backdrop-blur border-b border-slate-800 px-4 md:px-8 flex items-center justify-between z-20">
-    <div class="flex items-center gap-3">
-      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center font-extrabold text-white text-lg shadow-lg shadow-blue-500/20">
+  <header class="h-[75px] bg-slate-950/95 backdrop-blur border-b border-slate-800 px-3 sm:px-6 flex items-center justify-between z-30">
+    <!-- Logo & College Name -->
+    <div class="flex items-center gap-2.5">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center font-extrabold text-white text-base shadow-lg shadow-blue-500/20">
         GL
       </div>
       <div>
-        <h1 class="text-sm sm:text-base font-extrabold text-white flex items-center gap-2">
+        <h1 class="text-sm sm:text-base font-extrabold text-white leading-tight">
           GL Bajaj <span class="text-blue-500">CampusGuide</span>
         </h1>
-        <p class="text-[11px] text-slate-400 hidden sm:block">Greater Noida • Live GPS Dynamic Navigation</p>
+        <p class="text-[10px] text-slate-400">Smart Navigation & Security Portal</p>
       </div>
     </div>
 
-    <!-- Actions Right -->
-    <div class="flex items-center gap-2 sm:gap-3">
-      <!-- Live GPS Toggle Button -->
-      <button onclick="requestUserLocation(true)" id="gpsToggleBtn" class="text-xs bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 px-3 py-1.5 rounded-xl font-semibold transition flex items-center gap-1.5 shadow-sm">
+    <!-- Action Buttons (Sabhi Buttons Clearly Visible) -->
+    <div class="flex items-center gap-1.5 sm:gap-2.5">
+      <!-- Live GPS Toggle -->
+      <button onclick="requestUserLocation(true)" id="gpsToggleBtn" class="text-xs bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700 px-2.5 py-1.5 rounded-xl font-medium transition flex items-center gap-1">
         <span id="gpsPinIcon">📍</span>
-        <span id="gpsPinStatus">Enable My GPS</span>
+        <span id="gpsPinStatus" class="hidden md:inline">Live GPS</span>
       </button>
 
       <!-- Grievance Button -->
-      <button onclick="openModal('complaintModal')" class="text-xs bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30 px-3 py-1.5 rounded-xl font-semibold transition flex items-center gap-1.5">
+      <button onclick="openModal('complaintModal')" class="text-xs bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 px-2.5 py-1.5 rounded-xl font-semibold transition flex items-center gap-1">
         <span>⚠️</span>
-        <span class="hidden sm:inline">Report Issue</span>
+        <span class="hidden sm:inline">Report</span>
       </button>
 
-      <!-- Visitor Gate Pass -->
-      <button onclick="openModal('visitorModal')" class="text-xs bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 border border-purple-500/30 px-3 py-1.5 rounded-xl font-semibold transition flex items-center gap-1.5">
+      <!-- Visitor Entry Button (Prominent) -->
+      <button onclick="openModal('visitorModal')" class="text-xs bg-purple-600 hover:bg-purple-500 text-white font-bold px-3 py-1.5 rounded-xl transition shadow-md shadow-purple-600/20 flex items-center gap-1.5">
         <span>🪪</span>
         <span>Visitor Entry</span>
       </button>
 
       <!-- Student Login Button -->
       <div id="authSlot">
-        <button onclick="openModal('studentModal')" class="text-xs bg-blue-600 hover:bg-blue-500 text-white px-3.5 py-1.5 rounded-xl font-bold transition shadow-lg shadow-blue-600/30 flex items-center gap-1.5">
+        <button onclick="openModal('studentModal')" class="text-xs bg-blue-600 hover:bg-blue-500 text-white font-bold px-3 py-1.5 rounded-xl transition shadow-md shadow-blue-600/20 flex items-center gap-1.5">
           <span>🎓</span>
-          <span>Student Login</span>
+          <span class="hidden sm:inline">Student</span> Login
         </button>
       </div>
 
-      <!-- Admin Portal -->
-      <a href="/admin" class="text-xs bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 px-3 py-1.5 rounded-xl font-medium transition flex items-center gap-1">
+      <!-- Admin Portal Button (Clearly Visible) -->
+      <a href="/admin" class="text-xs bg-rose-600/20 hover:bg-rose-600/30 text-rose-300 border border-rose-500/40 px-2.5 py-1.5 rounded-xl font-bold transition flex items-center gap-1">
         <span>🔐</span>
-        <span class="hidden sm:inline">Admin</span>
+        <span>Admin</span>
       </a>
     </div>
   </header>
 
-  <!-- ================= MAP & NAVIGATION WRAPPER ================= -->
+  <!-- ================= MAP & QUICK NAV ================= -->
   <div class="flex-1 relative flex">
     <div id="map"></div>
 
-    <!-- Quick Navigation Panel -->
-    <div class="absolute top-4 left-4 z-[400] max-w-xs sm:max-w-sm w-full bg-slate-950/90 backdrop-blur-md p-3.5 rounded-2xl border border-slate-800 shadow-2xl space-y-2 pointer-events-auto">
+    <!-- Quick Navigation Drawer -->
+    <div class="absolute top-4 left-4 z-[400] max-w-xs sm:max-w-sm w-full bg-slate-950/90 backdrop-blur-md p-3 rounded-2xl border border-slate-800 shadow-2xl space-y-2 pointer-events-auto">
       <div class="flex justify-between items-center">
-        <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Tap Destination</span>
+        <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Quick Destinations</span>
         <span id="originStatusBadge" class="text-[10px] bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2 py-0.5 rounded-full font-semibold">Origin: Gate 1</span>
       </div>
-      <div class="flex flex-wrap gap-1.5" id="navChips"></div>
+      <div class="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto" id="navChips"></div>
     </div>
 
-    <!-- Active Route Details & Step-by-Step Guide Card -->
+    <!-- Active Route & Distance Card -->
     <div id="routeDetailsCard" class="absolute bottom-6 left-4 right-4 sm:left-auto sm:right-6 sm:w-96 z-[400] bg-slate-900/95 backdrop-blur-lg border border-slate-800 rounded-3xl p-5 shadow-2xl space-y-3 hidden pointer-events-auto">
       <div class="flex justify-between items-start">
         <div>
@@ -107,7 +107,6 @@
         <button onclick="closeRouteCard()" class="text-slate-400 hover:text-white text-sm">✕</button>
       </div>
 
-      <!-- Metrics: Distance & Walking Time -->
       <div class="grid grid-cols-2 gap-2 bg-slate-950/60 p-2.5 rounded-2xl border border-slate-800/80">
         <div>
           <div class="text-[10px] text-slate-400">Total Distance</div>
@@ -119,49 +118,10 @@
         </div>
       </div>
 
-      <!-- Step-by-Step Directions Text -->
       <div class="space-y-1.5">
         <div class="text-[11px] font-bold text-slate-300">Walking Direction Guide:</div>
-        <p id="guideText" class="text-xs text-slate-400 leading-relaxed bg-slate-800/50 p-3 rounded-xl border border-slate-700/50">
-          Select destination to compute path...
-        </p>
+        <p id="guideText" class="text-xs text-slate-400 leading-relaxed bg-slate-800/50 p-3 rounded-xl border border-slate-700/50"></p>
       </div>
-    </div>
-  </div>
-
-  <!-- ================= 🎓 STUDENT LOGIN MODAL ================= -->
-  <div id="studentModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
-    <div class="bg-slate-900 border border-slate-800 p-6 rounded-3xl max-w-sm w-full space-y-4">
-      <div class="flex justify-between items-center">
-        <div>
-          <h3 class="font-bold text-base text-white">Student Portal Login</h3>
-          <p class="text-xs text-slate-400">Admission No. daal kar OTP se verify karein</p>
-        </div>
-        <button onclick="closeModal('studentModal')" class="text-slate-400 hover:text-white">✕</button>
-      </div>
-
-      <div id="stdStep1" class="space-y-3">
-        <div>
-          <label class="block text-xs text-slate-400 mb-1">Admission Number</label>
-          <input id="stdAdm" type="text" placeholder="e.g. 25116CN001" class="w-full bg-slate-800 border border-slate-700 p-2.5 rounded-xl text-sm font-mono uppercase text-white outline-none focus:ring-1 focus:ring-blue-500">
-        </div>
-        <button onclick="requestStudentOtp()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold p-2.5 rounded-xl text-sm transition">
-          Send Email OTP
-        </button>
-      </div>
-
-      <div id="stdStep2" class="space-y-3 hidden">
-        <div id="stdOtpMsg" class="text-xs bg-slate-800 p-2.5 rounded-xl text-amber-300 font-mono text-center"></div>
-        <div>
-          <label class="block text-xs text-slate-400 mb-1">Enter 6-Digit OTP</label>
-          <input id="stdOtp" type="text" placeholder="• • • • • •" class="w-full bg-slate-800 border border-slate-700 p-2.5 rounded-xl text-center text-lg font-mono text-white outline-none">
-        </div>
-        <button onclick="verifyStudentOtp()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold p-2.5 rounded-xl text-sm transition">
-          Verify & Access
-        </button>
-      </div>
-
-      <p id="stdErr" class="text-xs text-red-400 text-center hidden"></p>
     </div>
   </div>
 
@@ -226,6 +186,42 @@
     </div>
   </div>
 
+  <!-- ================= 🎓 STUDENT LOGIN MODAL ================= -->
+  <div id="studentModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-slate-900 border border-slate-800 p-6 rounded-3xl max-w-sm w-full space-y-4">
+      <div class="flex justify-between items-center">
+        <div>
+          <h3 class="font-bold text-base text-white">Student Portal Login</h3>
+          <p class="text-xs text-slate-400">Admission No. daal kar verify karein</p>
+        </div>
+        <button onclick="closeModal('studentModal')" class="text-slate-400 hover:text-white">✕</button>
+      </div>
+
+      <div id="stdStep1" class="space-y-3">
+        <div>
+          <label class="block text-xs text-slate-400 mb-1">Admission Number</label>
+          <input id="stdAdm" type="text" placeholder="e.g. 25116CN001" class="w-full bg-slate-800 border border-slate-700 p-2.5 rounded-xl text-sm font-mono uppercase text-white outline-none">
+        </div>
+        <button onclick="requestStudentOtp()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold p-2.5 rounded-xl text-sm transition">
+          Send Email OTP
+        </button>
+      </div>
+
+      <div id="stdStep2" class="space-y-3 hidden">
+        <div id="stdOtpMsg" class="text-xs bg-slate-800 p-2.5 rounded-xl text-amber-300 font-mono text-center"></div>
+        <div>
+          <label class="block text-xs text-slate-400 mb-1">Enter 6-Digit OTP</label>
+          <input id="stdOtp" type="text" placeholder="• • • • • •" class="w-full bg-slate-800 border border-slate-700 p-2.5 rounded-xl text-center text-lg font-mono text-white outline-none">
+        </div>
+        <button onclick="verifyStudentOtp()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold p-2.5 rounded-xl text-sm transition">
+          Verify & Access
+        </button>
+      </div>
+
+      <p id="stdErr" class="text-xs text-red-400 text-center hidden"></p>
+    </div>
+  </div>
+
   <!-- ================= ⚠️ COMPLAINT MODAL ================= -->
   <div id="complaintModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
     <div class="bg-slate-900 border border-slate-800 p-6 rounded-3xl max-w-md w-full space-y-3">
@@ -268,7 +264,7 @@
     const LOCATIONS = {{ locations|tojson }};
     const MAIN_GATE = [28.4738, 77.4882];
     
-    let userCurrentCoords = null; // [lat, lng]
+    let userCurrentCoords = null;
     let userMarker = null;
     let userAccuracyCircle = null;
     let routePolyline = null;
@@ -279,7 +275,6 @@
     const map = L.map('map').setView([28.4728, 77.4897], 18);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
 
-    // Gate 1 Marker
     L.marker(MAIN_GATE).addTo(map).bindPopup("<b>📍 Gate 1 (Campus Main Entrance)</b>");
 
     // 2. Geolocation Request & Tracking
@@ -296,14 +291,12 @@
           const accuracy = position.coords.accuracy;
           userCurrentCoords = [lat, lng];
 
-          // Update UI Status
           document.getElementById('gpsPinIcon').innerText = "🟢";
-          document.getElementById('gpsPinStatus').innerText = "Live Location Active";
+          document.getElementById('gpsPinStatus').innerText = "GPS Active";
           document.getElementById('originStatusBadge').innerText = "Origin: Your Live Location 📍";
           document.getElementById('originStatusBadge').className = "text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full font-semibold";
 
-          // Add / Update User Marker on Map
-          const userPinIcon = L.divIcon({ className: 'user-live-pin', iconSize: [20, 20], iconAnchor: [10, 10] });
+          const userPinIcon = L.divIcon({ className: 'user-live-pin', iconSize: [18, 18], iconAnchor: [9, 9] });
 
           if (!userMarker) {
             userMarker = L.marker([lat, lng], { icon: userPinIcon }).addTo(map);
@@ -317,7 +310,6 @@
 
           map.flyTo([lat, lng], 19, { animate: true });
 
-          // Re-draw route if destination was already selected
           if (activeDestData) {
             navigateTo(activeDestData.lat, activeDestData.lng, activeDestData.name, activeDestData.desc);
           }
@@ -325,21 +317,20 @@
         (error) => {
           console.warn("Location error:", error.message);
           if (manualClick) {
-            alert("Location access block hai. Kripya browser URL bar me lock icon 🔒 click karke Location ko 'Allow' karein.");
+            alert("Location access block hai. Kripya browser address bar me lock icon 🔒 click karke Location ko 'Allow' karein.");
           }
         },
         { enableHighAccuracy: true, timeout: 8000 }
       );
     }
 
-    // Auto prompt location on page load
     window.addEventListener('load', () => {
       requestUserLocation(false);
     });
 
     // 3. Haversine Distance Formula (Meters)
     function calculateDistance(coord1, coord2) {
-      const R = 6371e3; // Earth radius in meters
+      const R = 6371e3;
       const φ1 = coord1[0] * Math.PI / 180;
       const φ2 = coord2[0] * Math.PI / 180;
       const Δφ = (coord2[0] - coord1[0]) * Math.PI / 180;
@@ -358,11 +349,9 @@
 
       if (routePolyline) map.removeLayer(routePolyline);
 
-      // Origin point: Live location if available, else Main Gate
       const startPoint = userCurrentCoords ? userCurrentCoords : MAIN_GATE;
       const isLive = !!userCurrentCoords;
 
-      // Realistic path intermediate midpoint
       const midPoint = [(startPoint[0] + destLat) / 2, (startPoint[1] + destLng) / 2];
       const routePoints = [startPoint, midPoint, [destLat, destLng]];
 
@@ -375,17 +364,14 @@
 
       map.fitBounds(routePolyline.getBounds(), { padding: [60, 60] });
 
-      // Calculate Metrics
       const totalDist = calculateDistance(startPoint, [destLat, destLng]);
-      const walkingMins = Math.max(1, Math.round(totalDist / 75)); // ~75 meters/min walking speed
+      const walkingMins = Math.max(1, Math.round(totalDist / 75));
 
-      // Update Guidance Card
       document.getElementById('routeDetailsCard').classList.remove('hidden');
       document.getElementById('destTitle').innerText = name;
       document.getElementById('distVal').innerText = totalDist >= 1000 ? `${(totalDist/1000).toFixed(2)} km` : `${totalDist} meters`;
       document.getElementById('timeVal').innerText = `~${walkingMins} mins walk`;
 
-      // Step-by-step Text Guide generator
       let stepGuide = "";
       if (isLive) {
         stepGuide = `1. Start walking from your current location towards central paved road.<br>` +
@@ -398,7 +384,6 @@
       }
       document.getElementById('guideText').innerHTML = stepGuide;
 
-      // Destination Popup
       L.popup().setLatLng([destLat, destLng])
         .setContent(`<b>${name}</b><br><small style="color:#64748b;">${desc}</small><div style="margin-top:6px; color:#2563eb; font-weight:bold; font-size:11px;">🚶 ${totalDist}m (~${walkingMins} min) from ${isLive ? 'Your Location' : 'Gate 1'}</div>`)
         .openOn(map);
