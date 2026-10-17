@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GL Bajaj AI Campus Guide & Navigator</title>
+  <title>GL Bajaj AI Campus Guide & Live Navigator</title>
 
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -18,6 +18,27 @@
       width: 100%;
       z-index: 10;
     }
+    /* Live Location Pulsing Dot Animation */
+    .user-pulse-dot {
+      width: 18px;
+      height: 18px;
+      background: #3b82f6;
+      border: 3px solid #ffffff;
+      border-radius: 50%;
+      box-shadow: 0 0 0 rgba(59, 130, 246, 0.7);
+      animation: pulse-ring 1.8s infinite;
+    }
+    @keyframes pulse-ring {
+      0% {
+        box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+      }
+      70% {
+        box-shadow: 0 0 0 16px rgba(59, 130, 246, 0);
+      }
+      100% {
+        box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+      }
+    }
   </style>
 </head>
 <body class="bg-slate-900 text-slate-100 flex flex-col h-screen overflow-hidden font-sans">
@@ -25,21 +46,27 @@
   <!-- ========================================== -->
   <!-- 🧭 NAVBAR                                   -->
   <!-- ========================================== -->
-  <header class="h-[70px] bg-slate-900/90 backdrop-blur border-b border-slate-800 px-4 md:px-8 flex items-center justify-between z-20">
+  <header class="h-[70px] bg-slate-900/95 backdrop-blur border-b border-slate-800 px-4 md:px-8 flex items-center justify-between z-20">
     <div class="flex items-center gap-3">
       <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center font-bold text-white text-lg shadow-lg shadow-blue-500/30">
         GL
       </div>
       <div>
         <h1 class="text-base md:text-lg font-bold tracking-tight text-white flex items-center gap-2">
-          Campus Guide <span class="text-xs px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30">AI Navigator</span>
+          Campus Guide <span class="text-xs px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30">Live GPS</span>
         </h1>
         <p class="text-xs text-slate-400 hidden sm:block">GL Bajaj Institute of Technology & Management</p>
       </div>
     </div>
 
-    <!-- Action Buttons -->
+    <!-- Top Action Buttons -->
     <div class="flex items-center gap-2 sm:gap-3">
+      <!-- GPS Status Indicator -->
+      <button onclick="locateMe()" id="gpsBtn" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1.5 shadow-sm">
+        <span id="gpsIcon" class="text-blue-400">📍</span>
+        <span id="gpsText">Locate Me</span>
+      </button>
+
       <!-- Report Issue Button -->
       <button onclick="openComplaintModal()" class="text-xs bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 px-3 py-1.5 rounded-lg font-semibold transition flex items-center gap-1.5 shadow-sm">
         <span>⚠️</span>
@@ -51,7 +78,7 @@
         ⚙️ Admin
       </a>
 
-      <!-- Student Login Button Container -->
+      <!-- Student Login Container -->
       <div id="authContainer">
         <button id="loginBtn" onclick="openLoginModal()" class="text-xs bg-blue-600 hover:bg-blue-500 text-white px-3.5 py-1.5 rounded-lg font-semibold shadow-md shadow-blue-600/30 transition flex items-center gap-1.5">
           <span>Student Login</span>
@@ -61,15 +88,18 @@
   </header>
 
   <!-- ========================================== -->
-  <!-- 🗺️ MAP & SIDEBAR CHIPS                      -->
+  <!-- 🗺️ MAP & QUICK NAV PANEL                   -->
   <!-- ========================================== -->
   <div class="flex-1 relative flex">
     <div id="map"></div>
 
-    <!-- Quick Location Chips -->
-    <div class="absolute top-4 left-4 z-[400] max-w-sm w-full bg-slate-900/85 backdrop-blur-md p-3 rounded-2xl border border-slate-800 shadow-xl space-y-2 pointer-events-auto">
-      <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Quick Navigate</div>
-      <div class="flex flex-wrap gap-1.5" id="locationChips"></div>
+    <!-- Quick Navigation Drawer / Chips -->
+    <div class="absolute top-4 left-4 z-[400] max-w-xs sm:max-w-sm w-full bg-slate-900/90 backdrop-blur-md p-3.5 rounded-2xl border border-slate-800 shadow-2xl space-y-2 pointer-events-auto">
+      <div class="flex items-center justify-between">
+        <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Tap to Navigate</span>
+        <span id="routeSourceText" class="text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">From: Detecting GPS...</span>
+      </div>
+      <div class="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto" id="locationChips"></div>
     </div>
   </div>
 
@@ -118,13 +148,13 @@
 
       <p id="authError" class="text-xs text-red-400 mt-3 text-center hidden"></p>
       <div class="mt-4 text-center">
-        <span class="text-[11px] text-slate-500">Registered Test ID: <span class="font-mono text-slate-400">25116CN001</span></span>
+        <span class="text-[11px] text-slate-500">Test ID: <span class="font-mono text-slate-400">25116CN001</span></span>
       </div>
     </div>
   </div>
 
   <!-- ========================================== -->
-  <!-- ⚠️ COMPLAINT / GRIEVANCE MODAL             -->
+  <!-- ⚠️ COMPLAINT MODAL                         -->
   <!-- ========================================== -->
   <div id="complaintModal" class="fixed inset-0 bg-black/75 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
     <div class="bg-slate-900 border border-slate-800 text-white rounded-2xl shadow-2xl max-w-md w-full p-6 relative">
@@ -171,15 +201,19 @@
   </div>
 
   <!-- ========================================== -->
-  <!-- 📜 JAVASCRIPT (MAP + AUTH + COMPLAINTS)    -->
+  <!-- 📜 JAVASCRIPT: LIVE GPS + MAP + ROUTING    -->
   <!-- ========================================== -->
- <script>
+  <script>
     const locationsData = {{ locations|tojson }};
     let currentAdmissionNo = null;
-    let currentRouteLine = null;
 
-    // GL Bajaj Main Gate Coordinates (Starting Point)
+    // GL Bajaj Main Gate (Default fallback location)
     const MAIN_GATE = [28.4738, 77.4882];
+    let userCurrentLocation = null; // Stored user GPS [lat, lng]
+    let userMarker = null;
+    let userAccuracyCircle = null;
+    let currentRouteLine = null;
+    let activeDestination = null;
 
     // 1. Initialize Map
     const map = L.map('map').setView([28.4728, 77.4897], 18);
@@ -190,33 +224,100 @@
 
     // Main Gate Marker
     const gateMarker = L.marker(MAIN_GATE).addTo(map);
-    gateMarker.bindPopup("<b>📍 Campus Main Entrance (Gate 1)</b>").openPopup();
+    gateMarker.bindPopup("<b>📍 Campus Main Entrance (Gate 1)</b>");
 
-    // Route Draw Function
-    function drawRouteTo(destLat, destLng, destName, desc) {
-      // Purani line hatayein agar pehle se draw hai
+    // Custom Live User Pulse Marker
+    const userPulseIcon = L.divIcon({
+      className: 'user-pulse-dot',
+      iconSize: [18, 18],
+      iconAnchor: [9, 9]
+    });
+
+    // 2. LIVE GPS TRACKING
+    function startLiveTracking() {
+      if (!navigator.geolocation) {
+        document.getElementById('routeSourceText').innerText = "From: Campus Main Gate";
+        return;
+      }
+
+      navigator.geolocation.watchPosition(
+        (position) => {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+          const accuracy = position.coords.accuracy;
+
+          userCurrentLocation = [lat, lng];
+          document.getElementById('routeSourceText').innerText = "From: Your Live GPS 📍";
+          document.getElementById('gpsIcon').innerText = "🟢";
+          document.getElementById('gpsText').innerText = "Live Location On";
+
+          // Update or Create Marker
+          if (!userMarker) {
+            userMarker = L.marker([lat, lng], { icon: userPulseIcon }).addTo(map);
+            userMarker.bindPopup("<b>You are here!</b><br><span style='font-size:11px;color:#64748b;'>Live tracking active</span>");
+            userAccuracyCircle = L.circle([lat, lng], { radius: accuracy, color: '#3b82f6', weight: 1, opacity: 0.3, fillOpacity: 0.08 }).addTo(map);
+          } else {
+            userMarker.setLatLng([lat, lng]);
+            userAccuracyCircle.setLatLng([lat, lng]);
+            userAccuracyCircle.setRadius(accuracy);
+          }
+
+          // Agar user chal raha hai aur rasta active hai, toh rasta auto-update karein
+          if (activeDestination) {
+            renderRoute(activeDestination.lat, activeDestination.lng, activeDestination.name, activeDestination.desc);
+          }
+        },
+        (error) => {
+          console.warn("GPS error / permission denied:", error.message);
+          document.getElementById('routeSourceText').innerText = "From: Campus Main Gate (GPS Off)";
+          document.getElementById('gpsIcon').innerText = "⚠️";
+          document.getElementById('gpsText').innerText = "GPS Disabled";
+        },
+        {
+          enableHighAccuracy: true,
+          maximumAge: 5000,
+          timeout: 10000
+        }
+      );
+    }
+
+    // Manual Locate Me Button
+    function locateMe() {
+      if (userCurrentLocation) {
+        map.flyTo(userCurrentLocation, 19, { animate: true });
+        if (userMarker) userMarker.openPopup();
+      } else {
+        alert("GPS location abhi load ho rahi hai. Kripya browser me Location Permission 'Allow' karein.");
+      }
+    }
+
+    // 3. Dynamic Route Rendering (From GPS if available, else Gate)
+    function renderRoute(destLat, destLng, destName, desc) {
+      activeDestination = { lat: destLat, lng: destLng, name: destName, desc: desc };
+
       if (currentRouteLine) {
         map.removeLayer(currentRouteLine);
       }
 
-      // Campus pathway coordinates (Gate se destination tak)
-      // Intermediate points realistic walkways ke liye
-      const midPoint = [(MAIN_GATE[0] + destLat) / 2, (MAIN_GATE[1] + destLng) / 2];
-      const routePoints = [MAIN_GATE, midPoint, [destLat, destLng]];
+      // Start point decide karein (Live Location ya Main Gate)
+      const startPoint = userCurrentLocation ? userCurrentLocation : MAIN_GATE;
+      const startLabel = userCurrentLocation ? "Your Live Location" : "Campus Main Gate";
 
-      // Blue Navigation Polyline draw karein
+      // Pathway calculate
+      const midPoint = [(startPoint[0] + destLat) / 2, (startPoint[1] + destLng) / 2];
+      const routePoints = [startPoint, midPoint, [destLat, destLng]];
+
+      // Blue dashed navigation line
       currentRouteLine = L.polyline(routePoints, {
         color: '#2563eb',
         weight: 6,
-        opacity: 0.85,
-        dashArray: '8, 8',
+        opacity: 0.9,
+        dashArray: '10, 8',
         lineCap: 'round'
       }).addTo(map);
 
-      // Fit map view to see the full route
-      map.fitBounds(currentRouteLine.getBounds(), { padding: [50, 50] });
+      map.fitBounds(currentRouteLine.getBounds(), { padding: [60, 60] });
 
-      // Destination popup open karein
       L.popup()
         .setLatLng([destLat, destLng])
         .setContent(`
@@ -224,35 +325,36 @@
             <b style="font-size:14px; color:#1e3a8a;">${destName}</b>
             <p style="font-size:11px; color:#475569; margin:4px 0;">${desc}</p>
             <div style="margin-top:6px; padding:4px 8px; background:#eff6ff; border-left:3px solid #2563eb; font-size:11px; color:#1d4ed8;">
-              🚶 <b>Route Active:</b> Main Gate se follow karein.
+              🚶 <b>Live Route:</b> ${startLabel} se follow karein.
             </div>
           </div>
         `)
         .openOn(map);
     }
 
-    // Markers & Quick Chips create karein
+    // 4. Markers & Navigation Chips
     const chipsBox = document.getElementById('locationChips');
     for (const [key, loc] of Object.entries(locationsData)) {
       const marker = L.marker([loc.lat, loc.lng]).addTo(map);
       marker.bindPopup(`<b>${loc.name}</b><br><span style="color:#64748b">${loc.desc}</span>`);
 
-      // Marker click par route dikhaye
       marker.on('click', () => {
-        drawRouteTo(loc.lat, loc.lng, loc.name, loc.desc);
+        renderRoute(loc.lat, loc.lng, loc.name, loc.desc);
       });
 
-      // Chip button
       const chip = document.createElement('button');
       chip.className = "text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-2.5 py-1 rounded-lg transition text-left flex items-center gap-1";
       chip.innerHTML = `<span>📍</span> <span>${loc.name.split('(')[0].trim()}</span>`;
       chip.onclick = () => {
-        drawRouteTo(loc.lat, loc.lng, loc.name, loc.desc);
+        renderRoute(loc.lat, loc.lng, loc.name, loc.desc);
       };
       chipsBox.appendChild(chip);
     }
 
-    // 2. Authentication Modal Functions
+    // Start GPS Tracking as soon as page loads
+    window.addEventListener('load', startLiveTracking);
+
+    // 5. Authentication Functions
     function openLoginModal() {
       document.getElementById('loginModal').classList.remove('hidden');
       document.getElementById('loginModal').classList.add('flex');
@@ -343,7 +445,7 @@
       }
     }
 
-    // 3. Grievance / Complaint Functions
+    // 6. Grievance Functions
     function openComplaintModal() {
       document.getElementById('complaintModal').classList.remove('hidden');
       document.getElementById('complaintModal').classList.add('flex');
