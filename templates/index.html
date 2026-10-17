@@ -173,35 +173,86 @@
   <!-- ========================================== -->
   <!-- 📜 JAVASCRIPT (MAP + AUTH + COMPLAINTS)    -->
   <!-- ========================================== -->
-  <script>
-    // 1. Locations from Flask backend
+ <script>
     const locationsData = {{ locations|tojson }};
     let currentAdmissionNo = null;
+    let currentRouteLine = null;
 
-    // Initialize Leaflet Map
+    // GL Bajaj Main Gate Coordinates (Starting Point)
+    const MAIN_GATE = [28.4738, 77.4882];
+
+    // 1. Initialize Map
     const map = L.map('map').setView([28.4728, 77.4897], 18);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
       attribution: '© OpenStreetMap contributors'
     }).addTo(map);
 
-    // Setup Markers and Navigation Chips
+    // Main Gate Marker
+    const gateMarker = L.marker(MAIN_GATE).addTo(map);
+    gateMarker.bindPopup("<b>📍 Campus Main Entrance (Gate 1)</b>").openPopup();
+
+    // Route Draw Function
+    function drawRouteTo(destLat, destLng, destName, desc) {
+      // Purani line hatayein agar pehle se draw hai
+      if (currentRouteLine) {
+        map.removeLayer(currentRouteLine);
+      }
+
+      // Campus pathway coordinates (Gate se destination tak)
+      // Intermediate points realistic walkways ke liye
+      const midPoint = [(MAIN_GATE[0] + destLat) / 2, (MAIN_GATE[1] + destLng) / 2];
+      const routePoints = [MAIN_GATE, midPoint, [destLat, destLng]];
+
+      // Blue Navigation Polyline draw karein
+      currentRouteLine = L.polyline(routePoints, {
+        color: '#2563eb',
+        weight: 6,
+        opacity: 0.85,
+        dashArray: '8, 8',
+        lineCap: 'round'
+      }).addTo(map);
+
+      // Fit map view to see the full route
+      map.fitBounds(currentRouteLine.getBounds(), { padding: [50, 50] });
+
+      // Destination popup open karein
+      L.popup()
+        .setLatLng([destLat, destLng])
+        .setContent(`
+          <div style="font-family:sans-serif; min-width:180px;">
+            <b style="font-size:14px; color:#1e3a8a;">${destName}</b>
+            <p style="font-size:11px; color:#475569; margin:4px 0;">${desc}</p>
+            <div style="margin-top:6px; padding:4px 8px; background:#eff6ff; border-left:3px solid #2563eb; font-size:11px; color:#1d4ed8;">
+              🚶 <b>Route Active:</b> Main Gate se follow karein.
+            </div>
+          </div>
+        `)
+        .openOn(map);
+    }
+
+    // Markers & Quick Chips create karein
     const chipsBox = document.getElementById('locationChips');
     for (const [key, loc] of Object.entries(locationsData)) {
       const marker = L.marker([loc.lat, loc.lng]).addTo(map);
       marker.bindPopup(`<b>${loc.name}</b><br><span style="color:#64748b">${loc.desc}</span>`);
 
+      // Marker click par route dikhaye
+      marker.on('click', () => {
+        drawRouteTo(loc.lat, loc.lng, loc.name, loc.desc);
+      });
+
+      // Chip button
       const chip = document.createElement('button');
-      chip.className = "text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-2.5 py-1 rounded-lg transition";
-      chip.innerText = loc.name.split('(')[0].trim();
+      chip.className = "text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-2.5 py-1 rounded-lg transition text-left flex items-center gap-1";
+      chip.innerHTML = `<span>📍</span> <span>${loc.name.split('(')[0].trim()}</span>`;
       chip.onclick = () => {
-        map.flyTo([loc.lat, loc.lng], 19);
-        marker.openPopup();
+        drawRouteTo(loc.lat, loc.lng, loc.name, loc.desc);
       };
       chipsBox.appendChild(chip);
     }
 
-    // 2. Authentication Logic
+    // 2. Authentication Modal Functions
     function openLoginModal() {
       document.getElementById('loginModal').classList.remove('hidden');
       document.getElementById('loginModal').classList.add('flex');
@@ -243,7 +294,6 @@
           document.getElementById('otpNotice').innerText = data.message;
           document.getElementById('otpStep1').classList.add('hidden');
           document.getElementById('otpStep2').classList.remove('hidden');
-          
           if (data.fallback_otp) {
             document.getElementById('otpCodeInput').value = data.fallback_otp;
           }
@@ -293,7 +343,7 @@
       }
     }
 
-    // 3. Grievance / Complaint Logic
+    // 3. Grievance / Complaint Functions
     function openComplaintModal() {
       document.getElementById('complaintModal').classList.remove('hidden');
       document.getElementById('complaintModal').classList.add('flex');
