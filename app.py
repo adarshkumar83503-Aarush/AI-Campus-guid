@@ -7,7 +7,6 @@ import ssl
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from flask import Flask, render_template, request, jsonify, session
-
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "glbajaj_super_secret_2026")
 
