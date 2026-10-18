@@ -29,7 +29,6 @@ STUDENTS_DB = {
     "25116CN091": {"name": "Aisha", "email": "pandeyaisha829@gmail.com"},
     "25116CN029": {"name": "Aditya", "email": "aditya33322@gmail.com"}
 }
-
 STUDENT_OTP_STORE = {}
 VISITOR_OTP_STORE = {}
 COMPLAINTS_DB = []
