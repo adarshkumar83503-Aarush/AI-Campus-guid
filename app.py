@@ -7,6 +7,7 @@ import ssl
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from flask import Flask, render_template, request, jsonify, session
+
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "glbajaj_super_secret_2026")
 
@@ -207,3 +208,11 @@ def update_status():
         return jsonify({"success": False}), 403
     data = request.get_json(force=True) or {}
     for c in COMPLAINTS_DB:
+        if c["ticket_id"] == data.get("ticket_id"):
+            c["status"] = data.get("status")
+            return jsonify({"success": True})
+    return jsonify({"success": False}), 404
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=False)
