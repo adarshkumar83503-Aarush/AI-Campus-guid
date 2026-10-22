@@ -1,0 +1,50 @@
+<!-- Student Modal -->
+<div id="studentModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+  <div class="bg-slate-900 border border-slate-800 p-6 rounded-3xl max-w-sm w-full space-y-4">
+    <div class="flex justify-between items-center">
+      <h3 class="font-bold text-sm text-white">Student Portal Login</h3>
+      <button onclick="closeModal('studentModal')" class="text-slate-400 hover:text-white">✕</button>
+    </div>
+    <div id="stdStep1" class="space-y-3">
+      <input id="stdAdm" type="text" placeholder="Admission ID (e.g. 25116CN001)" class="w-full bg-slate-800 border border-slate-700 p-2.5 rounded-xl text-xs font-mono uppercase text-white outline-none">
+      <button onclick="requestStudentOtp()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold p-2.5 rounded-xl text-xs">Send Email OTP</button>
+    </div>
+    <div id="stdStep2" class="space-y-3 hidden">
+      <div id="stdOtpMsg" class="text-xs bg-slate-800 border border-slate-700 p-2 rounded-xl text-emerald-300 font-mono text-center"></div>
+      <input id="stdOtp" type="text" placeholder="• • • • • •" class="w-full bg-slate-800 border border-slate-700 p-2 text-center text-base font-mono text-white outline-none">
+      <button onclick="verifyStudentOtp()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold p-2 rounded-xl text-xs">Verify & Login</button>
+    </div>
+    <p id="stdErr" class="text-xs text-red-400 text-center hidden"></p>
+  </div>
+</div>
+
+<!-- Visitor Modal -->
+<div id="visitorModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+  <div class="bg-slate-900 border border-slate-800 p-6 rounded-3xl max-w-md w-full space-y-4">
+    <div class="flex justify-between items-center pb-2 border-b border-slate-800">
+      <h3 class="font-bold text-sm text-white">Visitor Registration & Gate Pass</h3>
+      <button onclick="closeModal('visitorModal')" class="text-slate-400 hover:text-white">✕</button>
+    </div>
+    <div id="visStep1" class="space-y-3">
+      <input id="visName" type="text" placeholder="Full Name" class="w-full bg-slate-800 border border-slate-700 p-2.5 rounded-xl text-xs text-white outline-none">
+      <div class="grid grid-cols-2 gap-2">
+        <input id="visMobile" type="tel" maxlength="10" placeholder="Mobile Number" class="w-full bg-slate-800 border border-slate-700 p-2.5 rounded-xl text-xs text-white outline-none font-mono">
+        <input id="visAadhaar" type="text" maxlength="12" placeholder="Govt ID No." class="w-full bg-slate-800 border border-slate-700 p-2.5 rounded-xl text-xs text-white outline-none font-mono">
+      </div>
+      <select id="visPurpose" class="w-full bg-slate-800 border border-slate-700 p-2.5 rounded-xl text-xs text-white outline-none">
+        <option value="Admission Enquiry">Admission Enquiry</option>
+        <option value="Parent Visit">Parent Visit</option>
+        <option value="Placement / Company Drive">Placement / Company Drive</option>
+        <option value="Campus Fest / Event">Campus Fest / Event</option>
+        <option value="Other">Other</option>
+      </select>
+      <button onclick="requestVisitorOtp()" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold p-2.5 rounded-xl text-xs">Generate Verification OTP</button>
+    </div>
+    <div id="visStep2" class="space-y-3 hidden">
+      <div id="visOtpNotice" class="text-xs bg-purple-950/60 border border-purple-500/40 p-2 rounded-xl text-purple-300 font-mono text-center"></div>
+      <input id="visOtp" type="text" placeholder="• • • • • •" class="w-full bg-slate-800 border border-slate-700 p-2 text-center text-base font-mono text-white outline-none">
+      <button onclick="verifyVisitorOtp()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold p-2 rounded-xl text-xs">Confirm Entry & Generate Pass</button>
+    </div>
+    <p id="visErr" class="text-xs text-red-400 text-center hidden"></p>
+  </div>
+</div>
