@@ -1,0 +1,41 @@
+<div id="tab-explore" class="tab-content relative w-full h-[calc(100vh-75px)] flex overflow-hidden">
+  <div id="map" class="w-full h-full z-10"></div>
+
+  <!-- Quick Destinations Panel -->
+  <div class="absolute top-4 left-4 z-[400] max-w-xs sm:max-w-sm w-full bg-slate-950/90 backdrop-blur-md p-3.5 rounded-2xl border border-slate-800 shadow-2xl space-y-2 pointer-events-auto">
+    <div class="flex justify-between items-center">
+      <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Tap Destination</span>
+      <span id="originStatusBadge" class="text-[10px] bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2 py-0.5 rounded-full font-semibold">
+        From: Gate 1
+      </span>
+    </div>
+    <div class="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto" id="navChips"></div>
+  </div>
+
+  <!-- Turn-by-Turn Route Guidance Card -->
+  <div id="routeDetailsCard" class="absolute bottom-6 left-4 right-4 sm:left-auto sm:right-6 sm:w-96 z-[400] bg-slate-900/95 backdrop-blur-lg border border-slate-800 rounded-3xl p-5 shadow-2xl space-y-3 hidden pointer-events-auto">
+    <div class="flex justify-between items-start">
+      <div>
+        <span class="text-[10px] uppercase font-bold text-blue-400 tracking-wider">Live Path Guidance</span>
+        <h4 id="destTitle" class="text-base font-extrabold text-white mt-0.5">Destination</h4>
+      </div>
+      <button onclick="closeRouteCard()" class="text-slate-400 hover:text-white text-sm font-bold">✕</button>
+    </div>
+
+    <div class="grid grid-cols-2 gap-2 bg-slate-950/70 p-2.5 rounded-2xl border border-slate-800/80">
+      <div>
+        <div class="text-[10px] text-slate-400">Road Distance</div>
+        <div id="distVal" class="text-sm font-bold text-emerald-400 font-mono">-- m</div>
+      </div>
+      <div>
+        <div class="text-[10px] text-slate-400">Estimated Walking</div>
+        <div id="timeVal" class="text-sm font-bold text-blue-400 font-mono">-- mins</div>
+      </div>
+    </div>
+
+    <div class="space-y-1.5">
+      <div class="text-[11px] font-bold text-slate-300">Live Pathway Directions:</div>
+      <div id="guideText" class="text-xs text-slate-300 max-h-36 overflow-y-auto space-y-1 bg-slate-800/60 p-3 rounded-xl border border-slate-700/50"></div>
+    </div>
+  </div>
+</div>
