@@ -1,0 +1,24 @@
+<div id="tab-lostfound" class="tab-content hidden max-w-6xl mx-auto p-4 sm:p-6 space-y-6">
+  <div class="flex justify-between items-center">
+    <div>
+      <h3 class="text-lg font-bold text-white">🔍 Campus Lost & Found</h3>
+      <p class="text-xs text-slate-400">Misplaced belongings report karein ya khojiye.</p>
+    </div>
+    <button onclick="openModal('lostModal')" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-3 py-2 rounded-xl">
+      + Post Item
+    </button>
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    {% for item in lost_items %}
+    <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl space-y-2">
+      <span class="text-[10px] font-bold px-2 py-0.5 rounded-full {% if item.type == 'Lost' %}bg-red-500/10 text-red-400 border border-red-500/20{% else %}bg-emerald-500/10 text-emerald-400 border border-emerald-500/20{% endif %}">
+        {{ item.type }}
+      </span>
+      <h4 class="font-bold text-sm text-white">{{ item.title }}</h4>
+      <p class="text-xs text-slate-400">📍 {{ item.location }}</p>
+      <div class="text-xs text-blue-300 font-mono">📞 {{ item.contact }}</div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
