@@ -1,0 +1,107 @@
+<!-- ================= GRIEVANCE / ISSUE REPORT MODAL ================= -->
+<div id="complaintModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+  <div class="bg-slate-900 border border-slate-800 p-6 rounded-3xl max-w-md w-full space-y-4 shadow-2xl">
+    
+    <!-- Modal Header -->
+    <div class="flex justify-between items-center pb-2 border-b border-slate-800">
+      <div>
+        <h3 class="font-bold text-base text-white flex items-center gap-1.5">
+          <span>⚠️</span> Campus Grievance Redressal
+        </h3>
+        <p class="text-xs text-slate-400">Campus facilities ya lab issue direct admin tak pahunchayein</p>
+      </div>
+      <button onclick="closeModal('complaintModal')" class="text-slate-400 hover:text-white transition">✕</button>
+    </div>
+
+    <!-- Grievance Form -->
+    <div class="space-y-3">
+      <!-- Category Selection -->
+      <div>
+        <label class="block text-xs text-slate-400 mb-1">Issue Category</label>
+        <select id="cmpCat" class="w-full bg-slate-800 border border-slate-700 p-2.5 rounded-xl text-xs text-white outline-none focus:border-blue-500 transition">
+          <option value="Campus Facilities">Campus Facilities (Water / AC / Electricity)</option>
+          <option value="Lab & Hardware">Lab / Broken Computers / Internet</option>
+          <option value="Cleanliness">Cleanliness & Hygiene</option>
+          <option value="Navigation Route">Map Route / Directions Bug</option>
+          <option value="Other">Other Query</option>
+        </select>
+      </div>
+
+      <!-- Specific Location -->
+      <div>
+        <label class="block text-xs text-slate-400 mb-1">Location / Classroom / Lab</label>
+        <input id="cmpLoc" type="text" placeholder="e.g. AB-2, 2nd Floor, Room 204" class="w-full bg-slate-800 border border-slate-700 p-2.5 rounded-xl text-xs text-white outline-none focus:border-blue-500 transition">
+      </div>
+
+      <!-- Problem Description -->
+      <div>
+        <label class="block text-xs text-slate-400 mb-1">Detailed Description</label>
+        <textarea id="cmpDesc" rows="3" placeholder="Samasya ka vivaran likhein..." class="w-full bg-slate-800 border border-slate-700 p-2.5 rounded-xl text-xs text-white outline-none focus:border-blue-500 transition"></textarea>
+      </div>
+    </div>
+
+    <!-- Status Alert Box -->
+    <p id="cmpStatus" class="text-xs font-bold hidden"></p>
+
+    <!-- Modal Action Buttons -->
+    <div class="flex justify-end gap-2 pt-2 border-t border-slate-800">
+      <button onclick="closeModal('complaintModal')" class="px-3 py-1.5 border border-slate-700 rounded-xl text-xs text-slate-400 hover:text-white transition">
+        Cancel
+      </button>
+      <button onclick="submitGrievance()" class="px-4 py-1.5 bg-blue-600 hover:bg-blue-500 text-xs font-bold text-white rounded-xl transition shadow-md shadow-blue-600/20">
+        Submit Ticket
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ================= GRIEVANCE JAVASCRIPT HANDLER ================= -->
+<script>
+  async function submitGrievance() {
+    const desc = document.getElementById('cmpDesc').value.trim();
+    const loc = document.getElementById('cmpLoc').value.trim();
+    const cat = document.getElementById('cmpCat').value;
+    const st = document.getElementById('cmpStatus');
+
+    if (!desc) {
+      st.innerText = "Vivaran likhna zaroori hai.";
+      st.className = "text-xs text-rose-400 block font-semibold";
+      return;
+    }
+
+    st.innerText = "Submitting ticket...";
+    st.className = "text-xs text-blue-400 block font-semibold";
+
+    try {
+      const res = await fetch('/submit-complaint', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          description: desc,
+          location: loc || "Campus",
+          category: cat,
+          admission_no: activeUser || "Guest / Student"
+        })
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        st.innerHTML = `✅ ${data.message} <br><b>Ticket ID: ${data.ticket_id}</b>`;
+        st.className = "text-xs text-emerald-400 block font-semibold";
+        document.getElementById('cmpDesc').value = '';
+        document.getElementById('cmpLoc').value = '';
+        setTimeout(() => {
+          closeModal('complaintModal');
+          st.classList.add('hidden');
+        }, 2200);
+      } else {
+        st.innerText = data.message || "Submission failed.";
+        st.className = "text-xs text-rose-400 block font-semibold";
+      }
+    } catch (err) {
+      st.innerText = "Network error! Backend connect nahi ho pa raha.";
+      st.className = "text-xs text-rose-400 block font-semibold";
+    }
+  }
+</script>
