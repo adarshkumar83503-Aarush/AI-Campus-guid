@@ -1,0 +1,16 @@
+<div id="tab-clubs" class="tab-content hidden max-w-6xl mx-auto p-4 sm:p-6 space-y-6">
+  <div>
+    <h3 class="text-lg font-bold text-white">🎪 Student Societies & Fests</h3>
+    <p class="text-xs text-slate-400">GL Bajaj ke active chapters aur fests.</p>
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    {% for club in clubs %}
+    <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-2">
+      <span class="text-[10px] bg-blue-500/10 text-blue-400 border border-blue-500/20 font-bold px-2 py-0.5 rounded-full uppercase">{{ club.tag }}</span>
+      <h4 class="text-base font-bold text-white">{{ club.name }}</h4>
+      <p class="text-xs text-slate-400">{{ club.desc }}</p>
+    </div>
+    {% endfor %}
+  </div>
+</div>
