@@ -1,0 +1,24 @@
+<div id="tab-counselling" class="tab-content hidden max-w-5xl mx-auto p-4 sm:p-6 space-y-6">
+  <div class="bg-gradient-to-r from-blue-950/50 to-indigo-950/50 border border-blue-900/50 p-6 rounded-3xl space-y-4">
+    <h3 class="text-xl font-extrabold text-white">GL Bajaj Cutoff Predictor</h3>
+    <p class="text-xs text-slate-300">Apni Rank daalkar check karein ki kaunsi branch mil sakti hai.</p>
+
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+      <input id="predRank" type="number" placeholder="CRL Rank (e.g. 110000)" class="bg-slate-900 border border-slate-700 p-2.5 rounded-xl text-xs text-white outline-none">
+      <select id="predCat" class="bg-slate-900 border border-slate-700 p-2.5 rounded-xl text-xs text-white outline-none">
+        <option value="General">General / OPEN</option>
+        <option value="EWS">GEN-EWS</option>
+        <option value="OBC">OBC-NCL</option>
+        <option value="SC">SC / ST</option>
+      </select>
+      <button onclick="runAdmissionPredictor()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold p-2.5 rounded-xl text-xs transition">
+        Predict Branches 🎯
+      </button>
+    </div>
+  </div>
+
+  <div id="predictorResult" class="hidden space-y-3">
+    <h4 id="predSummary" class="text-xs font-bold text-slate-300"></h4>
+    <div id="predCards" class="grid grid-cols-1 sm:grid-cols-3 gap-3"></div>
+  </div>
+</div>
