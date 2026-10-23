@@ -1,0 +1,149 @@
+:root {
+    --primary-color: #0d47a1;
+    --accent-color: #00897b;
+    --bg-color: #f4f6f9;
+    --card-bg: #ffffff;
+    --text-color: #333333;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+}
+
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--primary-color);
+    color: white;
+    padding: 10px 30px;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 0 15px;
+}
+
+.hero-banner {
+    text-align: center;
+    padding: 20px 0;
+}
+
+.club-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 25px;
+}
+
+.tab-btn {
+    padding: 12px 24px;
+    font-weight: bold;
+    border: none;
+    background: #e0e0e0;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: 0.3s;
+}
+
+.tab-btn.active, .tab-btn:hover {
+    background: var(--primary-color);
+    color: white;
+}
+
+.club-content {
+    display: none;
+}
+
+.club-content.active {
+    display: block;
+}
+
+.mentor-card {
+    display: flex;
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 20px;
+    gap: 20px;
+    align-items: center;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+}
+
+.mentor-img {
+    width: 140px;
+    height: 160px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.tag {
+    background: #e3f2fd;
+    color: var(--primary-color);
+    padding: 4px 8px;
+    font-size: 12px;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+.section-block {
+    margin-top: 30px;
+    background: var(--card-bg);
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+.core-banner {
+    width: 100%;
+    max-height: 400px;
+    object-fit: contain;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+
+.core-details-grid, .avenue-grid, .events-grid, .upcoming-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.role-card, .avenue-card, .event-card, .upcoming-card {
+    background: #fafafa;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 15px;
+}
+
+.event-img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    border-radius: 6px;
+}
+
+.members-collapse {
+    margin-top: 10px;
+    cursor: pointer;
+}
+
+.member-list {
+    max-height: 150px;
+    overflow-y: auto;
+    font-size: 13px;
+    padding-left: 20px;
+}
+
+.nav-btn {
+    background: var(--accent-color);
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-top: 10px;
+    width: 100%;
+}
