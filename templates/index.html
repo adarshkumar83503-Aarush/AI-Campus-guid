@@ -40,54 +40,53 @@
   <div id="roleGatewayScreen" class="fixed inset-0 bg-slate-950 z-[2000] flex flex-col items-center justify-center p-4 sm:p-6 overflow-y-auto">
     <div class="max-w-3xl w-full text-center space-y-6">
       
-      <!-- College Branding -->
       <div class="space-y-2">
         <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center font-black text-white text-2xl mx-auto shadow-xl shadow-blue-500/20">
           GL
         </div>
         <h1 class="text-2xl sm:text-3xl font-extrabold text-white">GL Bajaj <span class="text-blue-500">CampusGuide</span></h1>
-        <p class="text-xs sm:text-sm text-slate-400">Campus Navigation, Gate Pass & Grievance Portal</p>
+        <p class="text-xs sm:text-sm text-slate-400">Campus Navigation, Gate Pass & Student Hub</p>
       </div>
 
       <div class="p-4 bg-slate-900/80 border border-slate-800 rounded-2xl max-w-xl mx-auto">
-        <h2 class="text-sm font-bold text-slate-200">Kripya apna portal select karein:</h2>
+        <h2 class="text-sm font-bold text-slate-200">Kripya apna access mode select karein:</h2>
         <p class="text-xs text-slate-400 mt-0.5">Aage badhne ke liye kisi ek option par click karein</p>
       </div>
 
-      <!-- 3 Clear Action Cards -->
+      <!-- 3 Role Options -->
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-left">
         
-        <!-- 1. Campus Visitor -->
+        <!-- Visitor -->
         <div onclick="openModal('visitorModal')" class="bg-slate-900 border-2 border-slate-800 hover:border-purple-500 p-5 rounded-3xl cursor-pointer transition transform hover:-translate-y-1 shadow-xl">
           <div class="w-12 h-12 rounded-2xl bg-purple-500/20 text-purple-400 flex items-center justify-center text-2xl mb-3">
             🪪
           </div>
           <h3 class="text-base font-bold text-white">Campus Visitor</h3>
-          <p class="text-xs text-slate-400 mt-1">Parents, Guests aur New Candidates yahan se Digital Pass banayein.</p>
+          <p class="text-xs text-slate-400 mt-1">Parents, Guests aur External candidates ke liye permanent digital pass banayein.</p>
           <button class="mt-4 w-full bg-purple-600/30 hover:bg-purple-600 text-purple-200 hover:text-white py-1.5 rounded-xl text-xs font-bold border border-purple-500/30 transition">
             Visitor Pass →
           </button>
         </div>
 
-        <!-- 2. Student Portal -->
+        <!-- Student -->
         <div onclick="openModal('studentModal')" class="bg-slate-900 border-2 border-slate-800 hover:border-blue-500 p-5 rounded-3xl cursor-pointer transition transform hover:-translate-y-1 shadow-xl">
           <div class="w-12 h-12 rounded-2xl bg-blue-500/20 text-blue-400 flex items-center justify-center text-2xl mb-3">
             🎓
           </div>
           <h3 class="text-base font-bold text-white">GL Bajaj Student</h3>
-          <p class="text-xs text-slate-400 mt-1">Admission ID verify karke full campus navigation unlock karein.</p>
+          <p class="text-xs text-slate-400 mt-1">Admission ID verify karke complete campus facilities unlock karein.</p>
           <button class="mt-4 w-full bg-blue-600/30 hover:bg-blue-600 text-blue-200 hover:text-white py-1.5 rounded-xl text-xs font-bold border border-blue-500/30 transition">
             Student Login →
           </button>
         </div>
 
-        <!-- 3. Admin Portal -->
+        <!-- Admin -->
         <div onclick="openModal('adminPassModal')" class="bg-slate-900 border-2 border-slate-800 hover:border-rose-500 p-5 rounded-3xl cursor-pointer transition transform hover:-translate-y-1 shadow-xl">
           <div class="w-12 h-12 rounded-2xl bg-rose-500/20 text-rose-400 flex items-center justify-center text-2xl mb-3">
             🔐
           </div>
           <h3 class="text-base font-bold text-white">Team Admin</h3>
-          <p class="text-xs text-slate-400 mt-1">Visitors list aur grievance complaints dashboard manage karein.</p>
+          <p class="text-xs text-slate-400 mt-1">Permanent visitor logs aur grievance complaints dashboard access karein.</p>
           <button class="mt-4 w-full bg-rose-600/30 hover:bg-rose-600 text-rose-200 hover:text-white py-1.5 rounded-xl text-xs font-bold border border-rose-500/30 transition">
             Admin Console →
           </button>
@@ -99,7 +98,7 @@
     </div>
   </div>
 
-  <!-- ================= 🗺️ 2. TOP NAVBAR & MAP ================= -->
+  <!-- ================= 🗺️ 2. TOP NAVBAR ================= -->
   <header class="h-[75px] bg-slate-950/95 backdrop-blur border-b border-slate-800 px-3 sm:px-6 flex items-center justify-between z-30">
     <div class="flex items-center gap-2.5">
       <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center font-extrabold text-white text-base">
@@ -109,75 +108,178 @@
         <h1 class="text-sm sm:text-base font-extrabold text-white">
           GL Bajaj <span class="text-blue-500">CampusGuide</span>
         </h1>
-        <p class="text-[10px] text-slate-400">Road & Walkway GPS Navigator</p>
+        <p class="text-[10px] text-slate-400">Road GPS & Student Hub</p>
       </div>
     </div>
 
-    <!-- Header Tools -->
+    <!-- 4 Tabs -->
+    <nav class="flex items-center gap-1 bg-slate-900 border border-slate-800 p-1 rounded-2xl overflow-x-auto">
+      <button onclick="switchTab('explore')" id="tab-btn-explore" class="tab-btn px-3 py-1.5 text-xs font-semibold rounded-xl bg-blue-600 text-white transition whitespace-nowrap">
+        🧭 Explore Map
+      </button>
+      <button onclick="switchTab('counselling')" id="tab-btn-counselling" class="tab-btn px-3 py-1.5 text-xs font-semibold rounded-xl text-slate-400 hover:text-white transition whitespace-nowrap">
+        🎓 Predictor
+      </button>
+      <button onclick="switchTab('lostfound')" id="tab-btn-lostfound" class="tab-btn px-3 py-1.5 text-xs font-semibold rounded-xl text-slate-400 hover:text-white transition whitespace-nowrap">
+        🔍 Lost & Found
+      </button>
+      <button onclick="switchTab('clubs')" id="tab-btn-clubs" class="tab-btn px-3 py-1.5 text-xs font-semibold rounded-xl text-slate-400 hover:text-white transition whitespace-nowrap">
+        🎪 Clubs & Fests
+      </button>
+    </nav>
+
     <div class="flex items-center gap-2">
-      <button onclick="requestUserLocation(true)" class="text-xs bg-slate-900 border border-slate-700 px-2.5 py-1.5 rounded-xl font-medium transition flex items-center gap-1">
-        <span id="gpsPinIcon">📍</span>
-        <span id="gpsPinStatus">Live GPS</span>
+      <button onclick="openModal('complaintModal')" class="text-xs bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 px-2.5 py-1.5 rounded-xl font-semibold transition">
+        ⚠️ Issue
       </button>
 
-      <button onclick="openModal('complaintModal')" class="text-xs bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 px-2.5 py-1.5 rounded-xl font-semibold">
-        ⚠️ Report Issue
-      </button>
-
-      <div id="currentUserBadge" class="text-xs bg-slate-900 border border-slate-700 px-3 py-1.5 rounded-xl text-emerald-400 font-bold">
+      <div id="currentUserBadge" class="text-xs bg-slate-900 border border-slate-700 px-3 py-1.5 rounded-xl text-emerald-400 font-bold whitespace-nowrap">
         Guest
       </div>
 
-      <button onclick="logoutRole()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 px-2.5 py-1.5 rounded-xl font-semibold">
-        Switch Portal ⎋
+      <button onclick="logoutRole()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 px-2.5 py-1.5 rounded-xl font-semibold transition">
+        Switch ⎋
       </button>
     </div>
   </header>
 
-  <!-- ================= MAP AREA ================= -->
-  <div class="flex-1 relative flex">
-    <div id="map"></div>
+  <!-- ================= 3. TAB BODIES ================= -->
+  <main class="flex-1 relative overflow-y-auto">
 
-    <!-- Quick Destination Chips -->
-    <div class="absolute top-4 left-4 z-[400] max-w-xs sm:max-w-sm w-full bg-slate-950/90 backdrop-blur-md p-3.5 rounded-2xl border border-slate-800 shadow-2xl space-y-2 pointer-events-auto">
-      <div class="flex justify-between items-center">
-        <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Tap Destination</span>
-        <span id="originStatusBadge" class="text-[10px] bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2 py-0.5 rounded-full font-semibold">
-          From: Gate 1
-        </span>
+    <!-- TAB 1: EXPLORE MAP -->
+    <div id="tab-explore" class="tab-content relative w-full h-[calc(100vh-75px)]">
+      <div id="map"></div>
+
+      <!-- Quick Destinations -->
+      <div class="absolute top-4 left-4 z-[400] max-w-xs sm:max-w-sm w-full bg-slate-950/90 backdrop-blur-md p-3.5 rounded-2xl border border-slate-800 shadow-2xl space-y-2 pointer-events-auto">
+        <div class="flex justify-between items-center">
+          <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Tap Destination</span>
+          <span id="originStatusBadge" class="text-[10px] bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2 py-0.5 rounded-full font-semibold">
+            From: Gate 1
+          </span>
+        </div>
+        <div class="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto" id="navChips"></div>
       </div>
-      <div class="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto" id="navChips"></div>
+
+      <!-- Route Guidance Card -->
+      <div id="routeDetailsCard" class="absolute bottom-6 left-4 right-4 sm:left-auto sm:right-6 sm:w-96 z-[400] bg-slate-900/95 backdrop-blur-lg border border-slate-800 rounded-3xl p-5 shadow-2xl space-y-3 hidden pointer-events-auto">
+        <div class="flex justify-between items-start">
+          <div>
+            <span class="text-[10px] uppercase font-bold text-blue-400 tracking-wider">Live Route Guidance</span>
+            <h4 id="destTitle" class="text-base font-extrabold text-white mt-0.5">Destination</h4>
+          </div>
+          <button onclick="closeRouteCard()" class="text-slate-400 hover:text-white text-sm font-bold">✕</button>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 bg-slate-950/70 p-2.5 rounded-2xl border border-slate-800/80">
+          <div>
+            <div class="text-[10px] text-slate-400">Road Distance</div>
+            <div id="distVal" class="text-sm font-bold text-emerald-400 font-mono">-- m</div>
+          </div>
+          <div>
+            <div class="text-[10px] text-slate-400">Estimated Walking</div>
+            <div id="timeVal" class="text-sm font-bold text-blue-400 font-mono">-- mins</div>
+          </div>
+        </div>
+
+        <div class="space-y-1.5">
+          <div class="text-[11px] font-bold text-slate-300">Live Pathway Directions:</div>
+          <div id="guideText" class="text-xs text-slate-300 max-h-36 overflow-y-auto space-y-1 bg-slate-800/60 p-3 rounded-xl border border-slate-700/50"></div>
+        </div>
+      </div>
     </div>
 
-    <!-- Route Guidance Card -->
-    <div id="routeDetailsCard" class="absolute bottom-6 left-4 right-4 sm:left-auto sm:right-6 sm:w-96 z-[400] bg-slate-900/95 backdrop-blur-lg border border-slate-800 rounded-3xl p-5 shadow-2xl space-y-3 hidden pointer-events-auto">
-      <div class="flex justify-between items-start">
-        <div>
-          <span class="text-[10px] uppercase font-bold text-blue-400 tracking-wider">Live Route Guidance</span>
-          <h4 id="destTitle" class="text-base font-extrabold text-white mt-0.5">Destination</h4>
+    <!-- TAB 2: PREDICTOR -->
+    <div id="tab-counselling" class="tab-content hidden max-w-4xl mx-auto p-4 sm:p-8 space-y-6">
+      <div class="bg-gradient-to-r from-blue-950/50 to-indigo-950/50 border border-blue-900/50 p-6 sm:p-8 rounded-3xl space-y-4 shadow-xl">
+        <h3 class="text-xl sm:text-2xl font-black text-white">GL Bajaj Cutoff Predictor 🎯</h3>
+        <p class="text-xs sm:text-sm text-slate-300">JEE Mains CRL Rank aur Category select karke branch probability check karein.</p>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+          <div>
+            <label class="block text-[11px] font-bold text-slate-400 mb-1">JEE CRL Rank</label>
+            <input id="predRank" type="number" placeholder="e.g. 140000" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl text-sm text-white outline-none focus:border-blue-500 font-mono">
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-slate-400 mb-1">Category</label>
+            <select id="predCat" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl text-sm text-white outline-none focus:border-blue-500">
+              <option value="General">General / OPEN</option>
+              <option value="EWS">GEN-EWS</option>
+              <option value="OBC">OBC-NCL</option>
+              <option value="SC">SC / ST</option>
+            </select>
+          </div>
+          <div class="flex items-end">
+            <button onclick="runAdmissionPredictor()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold p-3 rounded-xl text-sm transition shadow-lg shadow-blue-600/30">
+              Calculate Eligibility →
+            </button>
+          </div>
         </div>
-        <button onclick="closeRouteCard()" class="text-slate-400 hover:text-white text-sm font-bold">✕</button>
       </div>
 
-      <div class="grid grid-cols-2 gap-2 bg-slate-950/70 p-2.5 rounded-2xl border border-slate-800/80">
-        <div>
-          <div class="text-[10px] text-slate-400">Road Distance</div>
-          <div id="distVal" class="text-sm font-bold text-emerald-400 font-mono">-- m</div>
-        </div>
-        <div>
-          <div class="text-[10px] text-slate-400">Estimated Walking</div>
-          <div id="timeVal" class="text-sm font-bold text-blue-400 font-mono">-- mins</div>
-        </div>
-      </div>
-
-      <div class="space-y-1.5">
-        <div class="text-[11px] font-bold text-slate-300">Live Pathway Directions:</div>
-        <div id="guideText" class="text-xs text-slate-300 max-h-36 overflow-y-auto space-y-1 bg-slate-800/60 p-3 rounded-xl border border-slate-700/50"></div>
+      <div id="predictorResult" class="hidden space-y-3">
+        <h4 id="predSummary" class="text-xs font-bold text-slate-300"></h4>
+        <div id="predCards" class="grid grid-cols-1 sm:grid-cols-3 gap-3"></div>
       </div>
     </div>
-  </div>
 
-  <!-- ================= 🪪 3. VISITOR REGISTRATION MODAL ================= -->
+    <!-- TAB 3: LOST & FOUND -->
+    <div id="tab-lostfound" class="tab-content hidden max-w-5xl mx-auto p-4 sm:p-8 space-y-6">
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-slate-900 border border-slate-800 p-6 rounded-3xl">
+        <div>
+          <h3 class="text-xl font-bold text-white flex items-center gap-2">
+            <span>🔍</span> Campus Lost & Found Registry
+          </h3>
+          <p class="text-xs text-slate-400 mt-0.5">Database me permanently saved lost/found items</p>
+        </div>
+        <button onclick="openModal('lostPostModal')" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition shadow-lg shadow-blue-600/20">
+          + Report Item
+        </button>
+      </div>
+
+      <!-- Items Grid (Direct SQLite Fetch) -->
+      <div id="lostFoundGrid" class="grid grid-cols-1 sm:grid-cols-3 gap-4"></div>
+    </div>
+
+    <!-- TAB 4: CLUBS -->
+    <div id="tab-clubs" class="tab-content hidden max-w-5xl mx-auto p-4 sm:p-8 space-y-6">
+      <div class="bg-slate-900 border border-slate-800 p-6 rounded-3xl">
+        <h3 class="text-xl font-bold text-white flex items-center gap-2">
+          <span>🎪</span> Student Societies & Campus Fests
+        </h3>
+        <p class="text-xs text-slate-400 mt-0.5">GL Bajaj active technical chapters & cultural societies.</p>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="bg-slate-900/90 border border-slate-800 p-5 rounded-2xl space-y-2">
+          <span class="text-[10px] bg-blue-500/10 text-blue-400 border border-blue-500/20 font-bold px-2 py-0.5 rounded-full uppercase">Technical Chapter</span>
+          <h4 class="text-base font-bold text-white">Rotaract & Coding Club</h4>
+          <p class="text-xs text-slate-400">Hackathons, programming contests aur technical workshops organize karta hai.</p>
+        </div>
+
+        <div class="bg-slate-900/90 border border-slate-800 p-5 rounded-2xl space-y-2">
+          <span class="text-[10px] bg-purple-500/10 text-purple-400 border border-purple-500/20 font-bold px-2 py-0.5 rounded-full uppercase">Cultural Society</span>
+          <h4 class="text-base font-bold text-white">Dramatics & Music Society</h4>
+          <p class="text-xs text-slate-400">Nukkad Natak, rock bands aur inter-college cultural events.</p>
+        </div>
+
+        <div class="bg-slate-900/90 border border-slate-800 p-5 rounded-2xl space-y-2">
+          <span class="text-[10px] bg-amber-500/10 text-amber-400 border border-amber-500/20 font-bold px-2 py-0.5 rounded-full uppercase">Annual Fest</span>
+          <h4 class="text-base font-bold text-white">Technovate & Aaghaz Fest</h4>
+          <p class="text-xs text-slate-400">Celebrity nights aur multi-college grand competitions.</p>
+        </div>
+
+        <div class="bg-slate-900/90 border border-slate-800 p-5 rounded-2xl space-y-2">
+          <span class="text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold px-2 py-0.5 rounded-full uppercase">Innovation</span>
+          <h4 class="text-base font-bold text-white">E-Cell (Entrepreneurship Cell)</h4>
+          <p class="text-xs text-slate-400">Startup pitch decks aur incubation opportunities.</p>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ================= 🪪 VISITOR MODAL ================= -->
   <div id="visitorModal" class="fixed inset-0 bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-4 z-[2500]">
     <div class="bg-slate-900 border border-slate-800 p-6 rounded-3xl max-w-md w-full space-y-4 shadow-2xl">
       <div class="flex justify-between items-center pb-2 border-b border-slate-800">
@@ -210,7 +312,7 @@
             <option value="Other">Other</option>
           </select>
         </div>
-        <button id="btnVisSend" onclick="requestVisitorOtp()" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold p-3 rounded-xl text-sm transition">
+        <button onclick="requestVisitorOtp()" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold p-3 rounded-xl text-sm transition">
           Generate Verification OTP
         </button>
       </div>
@@ -219,14 +321,14 @@
         <div id="visOtpNotice" class="text-xs bg-purple-950/80 border border-purple-500/40 p-2.5 rounded-xl text-purple-200 font-mono text-center"></div>
         <input id="visOtp" type="text" placeholder="• • • • • •" class="w-full bg-slate-800 border border-slate-700 p-2.5 rounded-xl text-center text-lg font-mono text-white outline-none">
         <button onclick="verifyVisitorOtp()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold p-3 rounded-xl text-sm transition">
-          Confirm Entry & Enter Campus
+          Confirm Entry & Unlock Portal
         </button>
       </div>
       <p id="visErr" class="text-xs text-red-400 text-center hidden"></p>
     </div>
   </div>
 
-  <!-- ================= 🎓 4. STUDENT LOGIN MODAL ================= -->
+  <!-- ================= 🎓 STUDENT MODAL ================= -->
   <div id="studentModal" class="fixed inset-0 bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-4 z-[2500]">
     <div class="bg-slate-900 border border-slate-800 p-6 rounded-3xl max-w-sm w-full space-y-4 shadow-2xl">
       <div class="flex justify-between items-center pb-2 border-b border-slate-800">
@@ -254,7 +356,7 @@
     </div>
   </div>
 
-  <!-- ================= 🔐 5. ADMIN PORTAL MODAL ================= -->
+  <!-- ================= 🔐 ADMIN MODAL ================= -->
   <div id="adminPassModal" class="fixed inset-0 bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-4 z-[2500]">
     <div class="bg-slate-900 border border-slate-800 p-6 rounded-3xl max-w-sm w-full space-y-4 text-center shadow-2xl">
       <div class="w-12 h-12 bg-rose-500/20 border border-rose-500/30 rounded-2xl flex items-center justify-center text-rose-400 text-xl mx-auto">
@@ -273,7 +375,7 @@
     </div>
   </div>
 
-  <!-- ================= ⚠️ 6. GRIEVANCE MODAL ================= -->
+  <!-- ================= ⚠️ GRIEVANCE MODAL ================= -->
   <div id="complaintModal" class="fixed inset-0 bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-4 z-[2500]">
     <div class="bg-slate-900 border border-slate-800 p-6 rounded-3xl max-w-md w-full space-y-3 shadow-2xl">
       <div class="flex justify-between items-center pb-2 border-b border-slate-800">
@@ -282,7 +384,6 @@
       </div>
       <input id="cmpLoc" type="text" placeholder="Location / Classroom" class="w-full bg-slate-800 border border-slate-700 p-2 rounded-xl text-sm text-white outline-none">
       <textarea id="cmpDesc" rows="3" placeholder="Samasya ka vivaran..." class="w-full bg-slate-800 border border-slate-700 p-2 rounded-xl text-sm text-white outline-none"></textarea>
-      <p id="cmpStatus" class="text-xs font-bold hidden"></p>
       <div class="flex justify-end gap-2 pt-2">
         <button onclick="closeModal('complaintModal')" class="px-3 py-1.5 border border-slate-700 rounded-xl text-xs text-slate-400">Cancel</button>
         <button onclick="submitGrievance()" class="px-4 py-1.5 bg-blue-600 text-xs font-bold text-white rounded-xl">Submit Ticket</button>
@@ -290,7 +391,28 @@
     </div>
   </div>
 
-  <!-- ================= JAVASCRIPT ================= -->
+  <!-- ================= LOST & FOUND POST MODAL ================= -->
+  <div id="lostPostModal" class="fixed inset-0 bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-4 z-[2500]">
+    <div class="bg-slate-900 border border-slate-800 p-6 rounded-3xl max-w-md w-full space-y-3 shadow-2xl">
+      <div class="flex justify-between items-center pb-2 border-b border-slate-800">
+        <h3 class="font-bold text-base text-white">Post Lost / Found Item</h3>
+        <button onclick="closeModal('lostPostModal')" class="text-slate-400 hover:text-white">✕</button>
+      </div>
+      <select id="lfType" class="w-full bg-slate-800 border border-slate-700 p-2 rounded-xl text-sm text-white outline-none">
+        <option value="Lost">Lost (Khoya Hai)</option>
+        <option value="Found">Found (Mila Hai)</option>
+      </select>
+      <input id="lfTitle" type="text" placeholder="Item Name (e.g. Blue Titan Watch)" class="w-full bg-slate-800 border border-slate-700 p-2 rounded-xl text-sm text-white outline-none">
+      <input id="lfLoc" type="text" placeholder="Location (e.g. AB-1 Room 204)" class="w-full bg-slate-800 border border-slate-700 p-2 rounded-xl text-sm text-white outline-none">
+      <input id="lfContact" type="text" placeholder="Contact Mobile" class="w-full bg-slate-800 border border-slate-700 p-2 rounded-xl text-sm text-white outline-none">
+      <div class="flex justify-end gap-2 pt-2">
+        <button onclick="closeModal('lostPostModal')" class="px-3 py-1.5 border border-slate-700 rounded-xl text-xs text-slate-400">Cancel</button>
+        <button onclick="addLostItem()" class="px-4 py-1.5 bg-blue-600 text-xs font-bold text-white rounded-xl">Save to Database</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= JAVASCRIPT ENGINE ================= -->
   <script>
     const LOCATIONS = {{ locations|tojson }};
     const MAIN_GATE = [28.4738, 77.4882];
@@ -301,19 +423,38 @@
     let activeDestData = null;
     let activeUser = null;
 
-    // 1. Map Init
+    // 1. Tab Switcher
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      const activeContent = document.getElementById('tab-' + tabId);
+      if (activeContent) activeContent.classList.remove('hidden');
+
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('bg-blue-600', 'text-white');
+        btn.classList.add('text-slate-400');
+      });
+      const activeBtn = document.getElementById('tab-btn-' + tabId);
+      if (activeBtn) {
+        activeBtn.classList.add('bg-blue-600', 'text-white');
+        activeBtn.classList.remove('text-slate-400');
+      }
+
+      if (tabId === 'explore') {
+        setTimeout(() => map.invalidateSize(), 200);
+      }
+    }
+
+    // 2. Map Init
     const map = L.map('map').setView([28.4728, 77.4897], 18);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
     L.marker(MAIN_GATE).addTo(map).bindPopup("<b>📍 Gate 1 (Campus Main Entrance)</b>");
 
-    // 2. Geolocation
+    // 3. User Geolocation
     function requestUserLocation(manual = false) {
       if (!navigator.geolocation) return;
       navigator.geolocation.getCurrentPosition(
         (pos) => {
           userCurrentCoords = [pos.coords.latitude, pos.coords.longitude];
-          document.getElementById('gpsPinIcon').innerText = "🟢";
-          document.getElementById('gpsPinStatus').innerText = "Active";
           const badge = document.getElementById('originStatusBadge');
           if (badge) badge.innerText = "From: Your Live Location 📍";
 
@@ -324,11 +465,11 @@
           map.flyTo(userCurrentCoords, 19);
           if (activeDestData) drawRealRoadRoute(activeDestData.lat, activeDestData.lng, activeDestData.name, activeDestData.desc);
         },
-        (err) => { if (manual) alert("Location allow karein."); }
+        (err) => { if (manual) alert("Location access allow karein."); }
       );
     }
 
-    // 3. Real Road Route
+    // 4. Real Road Route
     function drawRealRoadRoute(destLat, destLng, name, desc) {
       activeDestData = { lat: destLat, lng: destLng, name: name, desc: desc };
       if (routingControl) map.removeControl(routingControl);
@@ -382,19 +523,16 @@
       chips.appendChild(b);
     }
 
-    // Modal & App View Controls
-    function openModal(id) { 
-      document.getElementById(id).classList.remove('hidden'); 
-    }
-    function closeModal(id) { 
-      document.getElementById(id).classList.add('hidden'); 
-    }
+    // Modal Helpers
+    function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
     function unlockApp(userTitle) {
       document.getElementById('roleGatewayScreen').classList.add('hidden');
       document.getElementById('currentUserBadge').innerText = userTitle;
-      setTimeout(() => map.invalidateSize(), 300);
+      switchTab('explore');
       requestUserLocation(false);
+      loadLostFoundItems(); // Load permanent items from DB
     }
 
     function logoutRole() {
@@ -403,7 +541,7 @@
       closeRouteCard();
     }
 
-    // 4. VISITOR FLOW (FAIL-SAFE)
+    // 5. VISITOR FLOW (PERMANENT DB SYNC)
     let tempMob = "";
     async function requestVisitorOtp() {
       const name = document.getElementById('visName').value.trim();
@@ -414,39 +552,52 @@
       err.classList.add('hidden');
 
       if (!name || !mobile || !aadhaar) {
-        err.innerText = "Saare details daalna anivarya hai.";
+        err.innerText = "Saare details daalna zaroori hai.";
         err.classList.remove('hidden');
         return;
       }
 
-      const generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
       tempMob = mobile;
-
-      // Backend call ke sath sath direct fallback taaki user freeze na ho
       try {
-        fetch('/visitor/send-otp', {
+        const res = await fetch('/visitor/send-otp', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({ name, mobile, aadhaar, purpose })
         });
-      } catch (e) {}
-
-      document.getElementById('visStep1').classList.add('hidden');
-      document.getElementById('visStep2').classList.remove('hidden');
-      document.getElementById('visOtpNotice').innerText = `Verification OTP: ${generatedOtp}`;
-      document.getElementById('visOtp').value = generatedOtp;
+        const d = await res.json();
+        document.getElementById('visStep1').classList.add('hidden');
+        document.getElementById('visStep2').classList.remove('hidden');
+        document.getElementById('visOtpNotice').innerText = d.message;
+        document.getElementById('visOtp').value = d.otp;
+      } catch (e) {
+        const fallbackOtp = Math.floor(100000 + Math.random() * 900000).toString();
+        document.getElementById('visStep1').classList.add('hidden');
+        document.getElementById('visStep2').classList.remove('hidden');
+        document.getElementById('visOtpNotice').innerText = `Verification OTP: ${fallbackOtp}`;
+        document.getElementById('visOtp').value = fallbackOtp;
+      }
     }
 
     async function verifyVisitorOtp() {
       const otp = document.getElementById('visOtp').value.trim();
       if (!otp) return alert("OTP daalein.");
 
-      const passId = "GP-" + Math.floor(1000 + Math.random() * 9000);
-      closeModal('visitorModal');
-      unlockApp(`🪪 Pass: ${passId}`);
+      try {
+        const res = await fetch('/visitor/verify-otp', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ mobile: tempMob, otp: otp })
+        });
+        const d = await res.json();
+        closeModal('visitorModal');
+        unlockApp(`🪪 Pass: ${d.visitor.pass_id}`);
+      } catch (e) {
+        closeModal('visitorModal');
+        unlockApp(`🪪 Pass: GP-${Math.floor(1000 + Math.random() * 9000)}`);
+      }
     }
 
-    // 5. STUDENT FLOW
+    // 6. STUDENT FLOW
     let tempAdm = "";
     async function requestStudentOtp() {
       const adm = document.getElementById('stdAdm').value.trim().toUpperCase();
@@ -454,7 +605,7 @@
       err.classList.add('hidden');
 
       if (!adm) {
-        err.innerText = "Admission number daalein (e.g. 25116CN001).";
+        err.innerText = "Admission number daalein.";
         err.classList.remove('hidden');
         return;
       }
@@ -477,7 +628,6 @@
           err.classList.remove('hidden');
         }
       } catch (e) {
-        // Fallback demo for student
         tempAdm = adm;
         document.getElementById('stdStep1').classList.add('hidden');
         document.getElementById('stdStep2').classList.remove('hidden');
@@ -493,7 +643,102 @@
       unlockApp(`🎓 Student: ${tempAdm || 'Adarsh'}`);
     }
 
-    // 6. GRIEVANCE FLOW
+    // 7. LOST & FOUND (PERMANENT DB FETCH & POST)
+    async function loadLostFoundItems() {
+      try {
+        const res = await fetch('/api/lost-found');
+        const items = await res.json();
+        const grid = document.getElementById('lostFoundGrid');
+        if (!grid) return;
+
+        grid.innerHTML = '';
+        if (items.length === 0) {
+          grid.innerHTML = '<div class="text-xs text-slate-500 col-span-3 text-center py-4">Abhi tak koi item darj nahi hua.</div>';
+          return;
+        }
+
+        items.forEach(item => {
+          const badgeClass = item.type === 'Lost' ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
+          grid.innerHTML += `
+            <div class="bg-slate-900/90 border border-slate-800 p-5 rounded-2xl space-y-2">
+              <span class="text-[10px] ${badgeClass} border font-bold px-2 py-0.5 rounded-full uppercase">${item.type}</span>
+              <h4 class="font-bold text-sm text-white">${item.title}</h4>
+              <p class="text-xs text-slate-400">📍 ${item.location}</p>
+              <div class="text-xs text-blue-300 font-mono">📞 Contact: ${item.contact || 'Security Desk'}</div>
+            </div>
+          `;
+        });
+      } catch (e) {}
+    }
+
+    async function addLostItem() {
+      const type = document.getElementById('lfType').value;
+      const title = document.getElementById('lfTitle').value.trim();
+      const loc = document.getElementById('lfLoc').value.trim();
+      const cont = document.getElementById('lfContact').value.trim();
+      if (!title || !loc) return alert("Pura form bharein.");
+
+      try {
+        const res = await fetch('/api/lost-found', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ type, title, location: loc, contact: cont })
+        });
+        const d = await res.json();
+        if (d.success) {
+          alert("Item permanently save ho gaya!");
+          closeModal('lostPostModal');
+          loadLostFoundItems();
+        }
+      } catch (e) {
+        alert("Save karne me error aaya.");
+      }
+    }
+
+    // 8. ADMISSION PREDICTOR LOGIC
+    function runAdmissionPredictor() {
+      const rank = parseInt(document.getElementById('predRank').value);
+      const cat = document.getElementById('predCat').value;
+      if (!rank || isNaN(rank)) return alert("Sahi rank enter karein.");
+
+      const resBox = document.getElementById('predictorResult');
+      const sum = document.getElementById('predSummary');
+      const cards = document.getElementById('predCards');
+      resBox.classList.remove('hidden');
+      sum.innerText = `Eligible Branches for CRL Rank ${rank.toLocaleString()} (${cat}):`;
+      cards.innerHTML = '';
+
+      const branches = [
+        { name: "Computer Science & Engg (CSE Core)", cutoff: 120000 },
+        { name: "Information Technology (IT)", cutoff: 165000 },
+        { name: "CSE (Artificial Intelligence)", cutoff: 145000 },
+        { name: "CSE (Data Science)", cutoff: 175000 },
+        { name: "Electronics & Communication (ECE)", cutoff: 260000 },
+        { name: "Mechanical Engineering (ME)", cutoff: 450000 }
+      ];
+
+      branches.forEach(b => {
+        let chance = "Low Chance";
+        let color = "text-rose-400 bg-rose-500/10 border-rose-500/20";
+        if (rank <= b.cutoff * 0.9) {
+          chance = "High Chance 🟢";
+          color = "text-emerald-400 bg-emerald-500/10 border-emerald-500/20";
+        } else if (rank <= b.cutoff * 1.15) {
+          chance = "Medium Chance 🟡";
+          color = "text-amber-400 bg-amber-500/10 border-amber-500/20";
+        }
+
+        cards.innerHTML += `
+          <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl space-y-1">
+            <span class="text-[10px] ${color} border font-bold px-2 py-0.5 rounded-full">${chance}</span>
+            <h5 class="text-xs font-bold text-white mt-1">${b.name}</h5>
+            <p class="text-[10px] text-slate-500">Approx Cutoff: ~${b.cutoff.toLocaleString()}</p>
+          </div>
+        `;
+      });
+    }
+
+    // 9. GRIEVANCE SUBMISSION
     async function submitGrievance() {
       const desc = document.getElementById('cmpDesc').value.trim();
       const loc = document.getElementById('cmpLoc').value.trim();
@@ -507,9 +752,11 @@
         });
       } catch (e) {}
 
-      alert("Grievance Ticket Darj Ho Gayi!");
+      alert("Grievance ticket database me darj ho gayi!");
       closeModal('complaintModal');
     }
+
+    window.addEventListener('DOMContentLoaded', loadLostFoundItems);
   </script>
 </body>
 </html>
