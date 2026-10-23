@@ -13,11 +13,11 @@ app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "glbajaj_super_secret_session_2026")
 
 DB_FILE = "campus_data.db"
-ADMIN_PASSCODE = "GLB@ADMIN2026"
+ADMIN_PASSCODE = "VisionX@2026"
 
 # 4 Core Team Admins Allowed to Access
 CORE_ADMINS = {
-    "25116CN001": {"name": "Adarsh Dubey", "email": "adarshkumar83503@gmail.com", "role": "Lead Architect"},
+    "25116CN001": {"name": "Adarsh", "email": "adarshkumar83503@gmail.com", "role": "Lead Architect"},
     "25116CN407": {"name": "Akansha", "email": "akanshasingh16806@gmail.com", "role": "Core Admin"},
     "25116CN091": {"name": "Aisha", "email": "pandeyaisha829@gmail.com", "role": "Core Admin"},
     "25116CN029": {"name": "Aditya", "email": "aditya33322@gmail.com", "role": "Core Admin"}
