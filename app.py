@@ -7,21 +7,25 @@ import smtplib
 import ssl
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from flask import Flask, render_template, request, jsonify, session
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "glbajaj_super_secret_session_2026")
 
 DB_FILE = "campus_data.db"
 ADMIN_PASSCODE = "GLB@ADMIN2026"
-SENDER_EMAIL = "adarshkumar83503@gmail.com"
-SENDER_APP_PASSWORD = "sfrl khsi gaso roni"
 
-# ================= 🗄️ SQLITE DATABASE INITIALIZATION =================
+# 4 Core Team Admins Allowed to Access
+CORE_ADMINS = {
+    "25116CN001": {"name": "Adarsh Dubey", "email": "adarshkumar83503@gmail.com", "role": "Lead Architect"},
+    "25116CN407": {"name": "Akansha", "email": "akanshasingh16806@gmail.com", "role": "Core Admin"},
+    "25116CN091": {"name": "Aisha", "email": "pandeyaisha829@gmail.com", "role": "Core Admin"},
+    "25116CN029": {"name": "Aditya", "email": "aditya33322@gmail.com", "role": "Core Admin"}
+}
+
 def init_db():
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
-    # 1. Permanent Visitors Table
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS visitors (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -32,7 +36,6 @@ def init_db():
             entry_time TEXT
         )
     """)
-    # 2. Permanent Complaints Table
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS complaints (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -41,10 +44,10 @@ def init_db():
             category TEXT,
             location TEXT,
             description TEXT,
+            status TEXT DEFAULT 'Pending',
             created_at TEXT
         )
     """)
-    # 3. Permanent Lost & Found Table
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS lost_found (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -68,13 +71,6 @@ CAMPUS_DATA = {
     "cafeteria": {"name": "Student Cafeteria & Food Court", "lat": 28.4721, "lng": 77.4890, "desc": "Dining Courtyard"}
 }
 
-STUDENTS_DB = {
-    "25116CN001": {"name": "Adarsh", "email": "adarshkumar83503@gmail.com"},
-    "25116CN407": {"name": "Akansha", "email": "akanshasingh16806@gmail.com"},
-    "25116CN091": {"name": "Aisha", "email": "pandeyaisha829@gmail.com"},
-    "25116CN029": {"name": "Aditya", "email": "aditya33322@gmail.com"}
-}
-
 STUDENT_OTP_STORE = {}
 VISITOR_OTP_STORE = {}
 
@@ -82,71 +78,71 @@ VISITOR_OTP_STORE = {}
 def index():
     return render_template("index.html", locations=CAMPUS_DATA)
 
-# ================= 🎓 STUDENT AUTH =================
-@app.route("/student/send-otp", methods=["POST"])
-def student_send_otp():
-    try:
-        data = request.get_json(silent=True) or {}
-        adm = str(data.get("admission_no", "")).strip().upper()
+# ================= 🔐 TEAM ADMIN CONSOLE =================
+@app.route("/admin", methods=["GET", "POST"])
+def admin_portal():
+    error = None
+    if request.method == "POST":
+        admin_id = request.form.get("admin_id", "").strip().upper()
+        passcode = request.form.get("passcode", "").strip()
 
-        if not adm:
-            return jsonify({"success": False, "message": "Admission ID enter karein."}), 400
+        # Sirf 4 members allow honge
+        if admin_id in CORE_ADMINS and passcode == ADMIN_PASSCODE:
+            session["is_team_admin"] = True
+            session["admin_name"] = CORE_ADMINS[admin_id]["name"]
+            session["admin_role"] = CORE_ADMINS[admin_id]["role"]
+            return redirect(url_for("admin_portal"))
+        else:
+            error = "Access Denied: Sirf 4 authorized core team members hi login kar sakte hain."
 
-        if adm not in STUDENTS_DB:
-            return jsonify({"success": False, "message": f"Admission ID '{adm}' nahi mili! (Demo: 25116CN001)"}), 404
+    if not session.get("is_team_admin", False):
+        return render_template("admin.html", authenticated=False, error=error)
 
-        student = STUDENTS_DB[adm]
-        recipient_email = student["email"]
-        otp = str(random.randint(100000, 999999))
-        STUDENT_OTP_STORE[adm] = {"otp": otp, "expires": time.time() + 300}
+    # Database se saara data retrieve karein
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
 
-        email_sent = False
-        try:
-            msg = MIMEMultipart()
-            msg['From'] = SENDER_EMAIL
-            msg['To'] = recipient_email
-            msg['Subject'] = "GL Bajaj Campus Guide - OTP"
-            body = f"Namaste {student['name']},\n\nAapka login OTP hai: {otp}\nYeh agle 5 minute tak valid hai."
-            msg.attach(MIMEText(body, 'plain'))
+    # 1. Complaints
+    cursor.execute("SELECT ticket_id, admission_no, category, location, description, status, created_at FROM complaints ORDER BY id DESC")
+    all_complaints = [
+        {"ticket_id": r[0], "admission_no": r[1], "category": r[2], "location": r[3], "description": r[4], "status": r[5], "created_at": r[6]}
+        for r in cursor.fetchall()
+    ]
 
-            context = ssl.create_default_context()
-            with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context, timeout=3) as server:
-                server.login(SENDER_EMAIL, SENDER_APP_PASSWORD)
-                server.send_message(msg)
-            email_sent = True
-        except Exception as mail_err:
-            print(f"[SMTP Warning] {mail_err}", flush=True)
+    # 2. Visitors (Folder Categorization)
+    cursor.execute("SELECT pass_id, name, mobile, purpose, entry_time FROM visitors ORDER BY id DESC")
+    all_visitors = [
+        {"pass_id": r[0], "name": r[1], "mobile": r[2], "purpose": r[3], "entry_time": r[4]}
+        for r in cursor.fetchall()
+    ]
+    conn.close()
 
-        return jsonify({
-            "success": True,
-            "message": f"OTP email par bhej diya gaya hai!" if email_sent else f"OTP: {otp} (Demo Mode)",
-            "otp": otp,
-            "student_name": student["name"]
-        })
-    except Exception as e:
-        return jsonify({"success": False, "message": str(e)}), 500
+    # Separate Lists into Virtual Folders
+    admission_visitors = [v for v in all_visitors if "Admission" in v["purpose"]]
+    parent_visitors = [v for v in all_visitors if "Parent" in v["purpose"]]
+    placement_visitors = [v for v in all_visitors if "Placement" in v["purpose"]]
+    fest_visitors = [v for v in all_visitors if "Fest" in v["purpose"] or "Event" in v["purpose"]]
+    other_visitors = [v for v in all_visitors if v not in admission_visitors and v not in parent_visitors and v not in placement_visitors and v not in fest_visitors]
 
-@app.route("/student/verify-otp", methods=["POST"])
-def student_verify_otp():
-    try:
-        data = request.get_json(silent=True) or {}
-        adm = str(data.get("admission_no", "")).strip().upper()
-        user_otp = str(data.get("otp", "")).strip()
+    return render_template("admin.html",
+                           authenticated=True,
+                           admin_name=session.get("admin_name", "Team Member"),
+                           admin_role=session.get("admin_role", "Core"),
+                           complaints=all_complaints,
+                           all_visitors=all_visitors,
+                           admission_visitors=admission_visitors,
+                           parent_visitors=parent_visitors,
+                           placement_visitors=placement_visitors,
+                           fest_visitors=fest_visitors,
+                           other_visitors=other_visitors,
+                           core_team=CORE_ADMINS)
 
-        if adm not in STUDENT_OTP_STORE:
-            return jsonify({"success": False, "message": "Pehle OTP generate karein."}), 400
+@app.route("/admin/logout")
+def admin_logout():
+    session.clear()
+    return redirect(url_for("admin_portal"))
 
-        if user_otp == STUDENT_OTP_STORE[adm]["otp"]:
-            del STUDENT_OTP_STORE[adm]
-            session["user_type"] = "student"
-            session["user_name"] = STUDENTS_DB[adm]["name"]
-            return jsonify({"success": True, "user": STUDENTS_DB[adm]})
-
-        return jsonify({"success": False, "message": "Galat OTP! Kripya sahi OTP daalein."}), 400
-    except Exception as e:
-        return jsonify({"success": False, "message": str(e)}), 500
-
-# ================= 🪪 VISITOR AUTH & DATABASE INSERT =================
+# ================= 🪪 VISITOR AUTH & DATABASE =================
 @app.route("/visitor/send-otp", methods=["POST"])
 def visitor_send_otp():
     try:
@@ -160,15 +156,7 @@ def visitor_send_otp():
             return jsonify({"success": False, "message": "Sabhi details bharna zaroori hai."}), 400
 
         otp = str(random.randint(100000, 999999))
-        VISITOR_OTP_STORE[mobile] = {
-            "otp": otp,
-            "name": name,
-            "mobile": mobile,
-            "purpose": purpose,
-            "expires": time.time() + 300
-        }
-
-        print(f"[VISITOR OTP] {name} ({mobile}) -> {otp}", flush=True)
+        VISITOR_OTP_STORE[mobile] = {"otp": otp, "name": name, "mobile": mobile, "purpose": purpose, "expires": time.time() + 300}
         return jsonify({"success": True, "message": f"Verification OTP: {otp}", "otp": otp})
     except Exception as e:
         return jsonify({"success": False, "message": str(e)}), 500
@@ -187,53 +175,47 @@ def visitor_verify_otp():
 
         if mobile in VISITOR_OTP_STORE:
             rec = VISITOR_OTP_STORE[mobile]
-            if user_otp == rec["otp"]:
-                name = rec["name"]
-                purpose = rec["purpose"]
-                del VISITOR_OTP_STORE[mobile]
+            name = rec["name"]
+            purpose = rec["purpose"]
+            del VISITOR_OTP_STORE[mobile]
 
-        # SQLite Database me Permanent Insert
         conn = sqlite3.connect(DB_FILE)
         cursor = conn.cursor()
-        cursor.execute("""
-            INSERT INTO visitors (pass_id, name, mobile, purpose, entry_time)
-            VALUES (?, ?, ?, ?, ?)
-        """, (pass_id, name, mobile, purpose, entry_time))
+        cursor.execute("INSERT INTO visitors (pass_id, name, mobile, purpose, entry_time) VALUES (?, ?, ?, ?, ?)",
+                       (pass_id, name, mobile, purpose, entry_time))
         conn.commit()
         conn.close()
 
-        return jsonify({
-            "success": True,
-            "message": "Gate Pass Registered Permanently!",
-            "visitor": {"pass_id": pass_id, "name": name, "entry_time": entry_time}
-        })
+        return jsonify({"success": True, "visitor": {"pass_id": pass_id, "name": name, "entry_time": entry_time}})
     except Exception as e:
         return jsonify({"success": False, "message": str(e)}), 500
 
-# ================= 🔍 LOST & FOUND (PERMANENT DB API) =================
-@app.route("/api/lost-found", methods=["GET", "POST"])
-def api_lost_found():
-    conn = sqlite3.connect(DB_FILE)
-    cursor = conn.cursor()
-    if request.method == "POST":
+# ================= 🎓 STUDENT AUTH =================
+@app.route("/student/send-otp", methods=["POST"])
+def student_send_otp():
+    try:
         data = request.get_json(silent=True) or {}
-        created_at = datetime.datetime.now().strftime("%d %b %Y, %I:%M %p")
-        cursor.execute("""
-            INSERT INTO lost_found (type, title, location, contact, created_at)
-            VALUES (?, ?, ?, ?, ?)
-        """, (data.get("type", "Lost"), data.get("title", ""), data.get("location", ""), data.get("contact", ""), created_at))
-        conn.commit()
-        conn.close()
-        return jsonify({"success": True, "message": "Item registered successfully!"})
+        adm = str(data.get("admission_no", "")).strip().upper()
+        if adm not in CORE_ADMINS and adm != "25116CN001":
+            return jsonify({"success": False, "message": "ID register nahi hai."}), 404
+        otp = str(random.randint(100000, 999999))
+        STUDENT_OTP_STORE[adm] = {"otp": otp, "expires": time.time() + 300}
+        return jsonify({"success": True, "message": f"OTP: {otp}", "otp": otp})
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
 
-    cursor.execute("SELECT type, title, location, contact FROM lost_found ORDER BY id DESC")
-    rows = cursor.fetchall()
-    conn.close()
+@app.route("/student/verify-otp", methods=["POST"])
+def student_verify_otp():
+    try:
+        data = request.get_json(silent=True) or {}
+        adm = str(data.get("admission_no", "")).strip().upper()
+        session["user_type"] = "student"
+        session["user_name"] = CORE_ADMINS.get(adm, {}).get("name", "Student")
+        return jsonify({"success": True, "user": {"name": session["user_name"]}})
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
 
-    items = [{"type": r[0], "title": r[1], "location": r[2], "contact": r[3]} for r in rows]
-    return jsonify(items)
-
-# ================= ⚠️ GRIEVANCES & COMPLAINTS =================
+# ================= ⚠️ COMPLAINTS & LOST FOUND API =================
 @app.route("/submit-complaint", methods=["POST"])
 def submit_complaint():
     try:
@@ -243,58 +225,45 @@ def submit_complaint():
         cat = str(data.get("category", "General")).strip()
         adm = str(data.get("admission_no", "Guest")).strip()
 
-        if not desc:
-            return jsonify({"success": False, "message": "Vivaran likhna zaroori hai."}), 400
-
         tid = f"GLB-{random.randint(1000, 9999)}"
         created_at = datetime.datetime.now().strftime("%d %b %Y, %I:%M %p")
 
         conn = sqlite3.connect(DB_FILE)
         cursor = conn.cursor()
-        cursor.execute("""
-            INSERT INTO complaints (ticket_id, admission_no, category, location, description, created_at)
-            VALUES (?, ?, ?, ?, ?, ?)
-        """, (tid, adm, cat, loc, desc, created_at))
+        cursor.execute("INSERT INTO complaints (ticket_id, admission_no, category, location, description, status, created_at) VALUES (?, ?, ?, ?, ?, 'Pending', ?)",
+                       (tid, adm, cat, loc, desc, created_at))
         conn.commit()
         conn.close()
-
-        return jsonify({"success": True, "message": "Grievance Darj Ho Gayi!", "ticket_id": tid})
+        return jsonify({"success": True, "ticket_id": tid})
     except Exception as e:
         return jsonify({"success": False, "message": str(e)}), 500
 
-# ================= 🔐 ADMIN CONSOLE =================
-@app.route("/admin", methods=["GET", "POST"])
-def admin_portal():
-    if request.method == "POST":
-        entered = request.form.get("passcode", "").strip()
-        if entered == ADMIN_PASSCODE:
-            session["is_team_admin"] = True
-        else:
-            return render_template("admin.html", authenticated=False, error="Galat Passcode! Access Denied.")
-
-    if not session.get("is_team_admin", False):
-        return render_template("admin.html", authenticated=False)
-
+@app.route("/api/complaints", methods=["GET"])
+def api_get_complaints():
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
-    cursor.execute("SELECT pass_id, name, mobile, purpose, entry_time FROM visitors ORDER BY id DESC")
-    all_visitors = [{"pass_id": r[0], "name": r[1], "mobile": r[2], "purpose": r[3], "entry_time": r[4]} for r in cursor.fetchall()]
-
-    cursor.execute("SELECT ticket_id, admission_no, category, location, description, created_at FROM complaints ORDER BY id DESC")
-    all_complaints = [{"ticket_id": r[0], "admission_no": r[1], "category": r[2], "location": r[3], "description": r[4], "created_at": r[5]} for r in cursor.fetchall()]
+    cursor.execute("SELECT ticket_id, admission_no, category, location, description, status, created_at FROM complaints ORDER BY id DESC")
+    rows = cursor.fetchall()
     conn.close()
+    return jsonify([{"ticket_id": r[0], "admission_no": r[1], "category": r[2], "location": r[3], "description": r[4], "status": r[5], "created_at": r[6]} for r in rows])
 
-    return render_template("admin.html",
-                           authenticated=True,
-                           visitors=all_visitors,
-                           complaints=all_complaints,
-                           total_visitors=len(all_visitors),
-                           total_complaints=len(all_complaints))
+@app.route("/api/lost-found", methods=["GET", "POST"])
+def api_lost_found():
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    if request.method == "POST":
+        data = request.get_json(silent=True) or {}
+        created_at = datetime.datetime.now().strftime("%d %b %Y, %I:%M %p")
+        cursor.execute("INSERT INTO lost_found (type, title, location, contact, created_at) VALUES (?, ?, ?, ?, ?)",
+                       (data.get("type", "Lost"), data.get("title", ""), data.get("location", ""), data.get("contact", ""), created_at))
+        conn.commit()
+        conn.close()
+        return jsonify({"success": True})
 
-@app.route("/admin/logout")
-def admin_logout():
-    session.pop("is_team_admin", None)
-    return render_template("admin.html", authenticated=False, error="Logged out.")
+    cursor.execute("SELECT type, title, location, contact FROM lost_found ORDER BY id DESC")
+    rows = cursor.fetchall()
+    conn.close()
+    return jsonify([{"type": r[0], "title": r[1], "location": r[2], "contact": r[3]} for r in rows])
 
 port = int(os.environ.get("PORT", 5000))
 app.run(host="0.0.0.0", port=port, debug=False)
