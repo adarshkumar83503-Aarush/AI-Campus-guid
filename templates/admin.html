@@ -3,382 +3,338 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GL Bajaj CampusGuide | 360° Smart Portal</title>
-
-
-  <!-- Tailwind CSS & Leaflet -->
+  <title>GL Bajaj CampusGuide | Core Admin Portal</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
   <style>
     body { font-family: 'Plus Jakarta Sans', sans-serif; }
-    #map { height: calc(100vh - 75px); width: 100%; z-index: 10; }
   </style>
 </head>
-<body class="bg-slate-950 text-slate-100 flex flex-col h-screen overflow-hidden">
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col">
 
-  <!-- ================= TOP NAVBAR ================= -->
-  <header class="h-[75px] bg-slate-950/95 backdrop-blur border-b border-slate-800 px-3 sm:px-6 flex items-center justify-between z-30">
-    <div class="flex items-center gap-2.5">
-      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center font-extrabold text-white text-base shadow-lg shadow-blue-500/20">
-        GL
+  {% if not authenticated %}
+  <!-- ================= 🔐 4-MEMBER STRICT LOGIN SCREEN ================= -->
+  <div class="flex-1 flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 p-8 rounded-3xl max-w-md w-full space-y-6 text-center shadow-2xl">
+      
+      <div class="w-16 h-16 bg-rose-500/10 border border-rose-500/20 rounded-2xl flex items-center justify-center text-rose-400 text-3xl mx-auto shadow-lg shadow-rose-500/10">
+        🔐
+      </div>
+
+      <div>
+        <h2 class="text-xl font-extrabold text-white">Core Admin Console</h2>
+        <p class="text-xs text-slate-400 mt-1">Authorized Access Only (4 Core Team Members)</p>
+      </div>
+
+      {% if error %}
+      <div class="p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-xs text-rose-400 font-semibold text-left">
+        ⚠️ {{ error }}
+      </div>
+      {% endif %}
+
+      <form method="POST" action="/admin" class="space-y-4 text-left">
+        <div>
+          <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Your Admission ID</label>
+          <input type="text" name="admin_id" placeholder="e.g. 25116CN001" required
+                 class="w-full bg-slate-800 border border-slate-700 p-3 rounded-xl text-sm text-white font-mono uppercase outline-none focus:border-rose-500">
+          <p class="text-[10px] text-slate-500 mt-1">Sirf Adarsh, Akansha, Aisha, aur Aditya ke credentials valid hain.</p>
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Team Master Passcode</label>
+          <input type="password" name="passcode" placeholder="Enter Master Passcode" required
+                 class="w-full bg-slate-800 border border-slate-700 p-3 rounded-xl text-sm text-white font-mono outline-none focus:border-rose-500">
+        </div>
+
+        <button type="submit" class="w-full bg-rose-600 hover:bg-rose-500 text-white font-bold p-3 rounded-xl text-sm transition shadow-lg shadow-rose-600/30">
+          Unlock Console →
+        </button>
+      </form>
+
+      <a href="/" class="inline-block text-xs text-slate-500 hover:text-slate-300">← Back to Campus Map</a>
+    </div>
+  </div>
+
+  {% else %}
+  <!-- ================= 📊 AUTHENTICATED DASHBOARD ================= -->
+  <header class="h-[75px] bg-slate-900/90 backdrop-blur border-b border-slate-800 px-4 sm:px-8 flex items-center justify-between sticky top-0 z-40">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-rose-600 to-indigo-600 flex items-center justify-center font-extrabold text-white text-base shadow-lg shadow-rose-500/20">
+        ADM
       </div>
       <div>
         <h1 class="text-sm sm:text-base font-extrabold text-white leading-tight">
-          GL Bajaj <span class="text-blue-500">CampusGuide</span>
+          GL Bajaj <span class="text-rose-400">Core Admin Console</span>
         </h1>
-        <p class="text-[10px] text-slate-400">Smart Navigation & Security Portal</p>
+        <p class="text-[11px] text-slate-400">Logged in as: <span class="text-emerald-400 font-bold">{{ admin_name }} ({{ admin_role }})</span></p>
       </div>
     </div>
 
-    <!-- Actions Bar -->
     <div class="flex items-center gap-2">
-      <!-- Grievance Button -->
-      <button onclick="openModal('complaintModal')" class="text-xs bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 px-2.5 py-1.5 rounded-xl font-semibold transition flex items-center gap-1">
-        <span>⚠️</span>
-        <span class="hidden sm:inline">Report Issue</span>
-      </button>
-
-      <!-- Visitor Gate Pass Button -->
-      <button onclick="openModal('visitorModal')" class="text-xs bg-purple-600 hover:bg-purple-500 text-white font-bold px-3 py-1.5 rounded-xl transition shadow-md shadow-purple-600/20 flex items-center gap-1.5">
-        <span>🪪</span>
-        <span>Visitor Entry</span>
-      </button>
-
-      <!-- Student Login Button -->
-      <div id="authSlot">
-        <button onclick="openModal('studentModal')" class="text-xs bg-blue-600 hover:bg-blue-500 text-white font-bold px-3 py-1.5 rounded-xl transition shadow-md shadow-blue-600/20 flex items-center gap-1.5">
-          <span>🎓</span>
-          <span>Student Login</span>
-        </button>
-      </div>
-
-      <!-- Admin Portal Link -->
-      <a href="/admin" class="text-xs bg-rose-600/20 hover:bg-rose-600/30 text-rose-300 border border-rose-500/40 px-2.5 py-1.5 rounded-xl font-bold transition flex items-center gap-1">
-        <span>🔐</span>
-        <span>Admin Team</span>
+      <a href="/" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 px-3 py-1.5 rounded-xl font-semibold">
+        🗺️ Live Map
+      </a>
+      <a href="/admin/logout" class="text-xs bg-rose-600 hover:bg-rose-500 text-white px-3 py-1.5 rounded-xl font-semibold transition shadow-md shadow-rose-600/30">
+        Logout ⎋
       </a>
     </div>
   </header>
 
-  <!-- ================= MAP & QUICK NAV ================= -->
-  <div class="flex-1 relative flex">
-    <div id="map"></div>
-
-    <div class="absolute top-4 left-4 z-[400] max-w-xs sm:max-w-sm w-full bg-slate-950/90 backdrop-blur-md p-3.5 rounded-2xl border border-slate-800 shadow-2xl space-y-2 pointer-events-auto">
-      <div class="flex justify-between items-center">
-        <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Quick Campus Navigation</span>
-        <span class="text-[10px] bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2 py-0.5 rounded-full font-semibold">Origin: Gate 1</span>
-      </div>
-      <div class="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto" id="navChips"></div>
-    </div>
-  </div>
-
-  <!-- ================= 🎓 1. STUDENT LOGIN MODAL ================= -->
-  <div id="studentModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
-    <div class="bg-slate-900 border border-slate-800 p-6 rounded-3xl max-w-sm w-full space-y-4">
-      <div class="flex justify-between items-center">
-        <div>
-          <h3 class="font-bold text-base text-white">Student Portal Login</h3>
-          <p class="text-xs text-slate-400">Registered email OTP se login karein</p>
-        </div>
-        <button onclick="closeModal('studentModal')" class="text-slate-400 hover:text-white">✕</button>
-      </div>
-
-      <div id="stdStep1" class="space-y-3">
-        <div>
-          <label class="block text-xs text-slate-400 mb-1">Admission Number</label>
-          <input id="stdAdm" type="text" placeholder="e.g. 25116CN001" class="w-full bg-slate-800 border border-slate-700 p-2.5 rounded-xl text-sm font-mono uppercase text-white outline-none">
-        </div>
-        <button onclick="requestStudentOtp()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold p-2.5 rounded-xl text-sm transition">
-          Send Email OTP
-        </button>
-      </div>
-
-      <div id="stdStep2" class="space-y-3 hidden">
-        <div id="stdOtpMsg" class="text-xs bg-slate-800 border border-slate-700 p-2.5 rounded-xl text-emerald-300 font-mono text-center"></div>
-        <div>
-          <label class="block text-xs text-slate-400 mb-1">Enter 6-Digit OTP</label>
-          <input id="stdOtp" type="text" placeholder="• • • • • •" class="w-full bg-slate-800 border border-slate-700 p-2.5 rounded-xl text-center text-lg font-mono text-white outline-none">
-        </div>
-        <button onclick="verifyStudentOtp()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold p-2.5 rounded-xl text-sm transition">
-          Verify & Access
-        </button>
-      </div>
-
-      <p id="stdErr" class="text-xs text-red-400 text-center hidden"></p>
-    </div>
-  </div>
-
-  <!-- ================= 🪪 2. VISITOR GATE PASS MODAL ================= -->
-  <div id="visitorModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
-    <div class="bg-slate-900 border border-slate-800 p-6 rounded-3xl max-w-md w-full space-y-4">
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-8 space-y-8">
+    
+    <!-- ⚠️ 1. LIVE GRIEVANCES / COMPLAINTS (TOP PRIORITY) -->
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-4 shadow-xl">
       <div class="flex justify-between items-center pb-2 border-b border-slate-800">
         <div>
-          <h3 class="font-bold text-base text-white flex items-center gap-1.5">
-            <span>🪪</span> Visitor Registration & Gate Pass
+          <h3 class="text-lg font-extrabold text-white flex items-center gap-2">
+            <span>⚠️</span> Active Grievances & Reported Issues
           </h3>
-          <p class="text-xs text-slate-400">Campus entry pass aur automatic logging</p>
+          <p class="text-xs text-slate-400">Students aur visitors dwara live darj ki gayi complaints</p>
         </div>
-        <button onclick="closeModal('visitorModal')" class="text-slate-400 hover:text-white">✕</button>
+        <span class="text-xs bg-amber-500/10 text-amber-400 border border-amber-500/20 px-3 py-1 rounded-full font-bold">
+          Total: {{ complaints|length }}
+        </span>
       </div>
 
-      <div id="visStep1" class="space-y-3">
+      <div class="overflow-x-auto rounded-2xl border border-slate-800">
+        <table class="w-full text-xs text-left">
+          <thead class="bg-slate-800/80 text-slate-400 uppercase tracking-wider text-[10px]">
+            <tr>
+              <th class="p-3.5">Ticket ID</th>
+              <th class="p-3.5">Admission / User</th>
+              <th class="p-3.5">Category</th>
+              <th class="p-3.5">Campus Location</th>
+              <th class="p-3.5">Description</th>
+              <th class="p-3.5">Status</th>
+              <th class="p-3.5">Reported On</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-800">
+            {% for c in complaints %}
+            <tr class="hover:bg-slate-800/40 transition">
+              <td class="p-3.5 font-mono text-amber-400 font-bold">{{ c.ticket_id }}</td>
+              <td class="p-3.5 text-slate-200 font-medium">{{ c.admission_no }}</td>
+              <td class="p-3.5"><span class="bg-slate-800 border border-slate-700 text-slate-300 px-2 py-0.5 rounded-full text-[10px] font-semibold">{{ c.category }}</span></td>
+              <td class="p-3.5 text-slate-200">📍 {{ c.location }}</td>
+              <td class="p-3.5 text-slate-300 max-w-xs">{{ c.description }}</td>
+              <td class="p-3.5"><span class="bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded-full text-[10px] font-bold">Pending ⏱️</span></td>
+              <td class="p-3.5 text-slate-500 font-mono">{{ c.created_at }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="7" class="p-6 text-center text-slate-500">Filhal koi complaint pending nahi hai. Sab theek hai! 🎉</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 📁 2. VISITOR DATABASE CATEGORY FOLDERS (SMART TABS) -->
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-5 shadow-xl">
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-2 border-b border-slate-800">
         <div>
-          <label class="block text-xs text-slate-400 mb-1">Full Name (Pura Naam)</label>
-          <input id="visName" type="text" placeholder="e.g. Rahul Sharma" class="w-full bg-slate-800 border border-slate-700 p-2.5 rounded-xl text-sm text-white outline-none">
+          <h3 class="text-lg font-extrabold text-white flex items-center gap-2">
+            <span>📁</span> Visitor Registry Folders (Categorized)
+          </h3>
+          <p class="text-xs text-slate-400">Har visitor purpose ka alag folder ban raha hai</p>
         </div>
+      </div>
 
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label class="block text-xs text-slate-400 mb-1">Mobile Number</label>
-            <input id="visMobile" type="tel" maxlength="10" placeholder="10-digit number" class="w-full bg-slate-800 border border-slate-700 p-2.5 rounded-xl text-sm text-white outline-none font-mono">
-          </div>
-          <div>
-            <label class="block text-xs text-slate-400 mb-1">Aadhaar Card No.</label>
-            <input id="visAadhaar" type="text" maxlength="12" placeholder="12-digit number" class="w-full bg-slate-800 border border-slate-700 p-2.5 rounded-xl text-sm text-white outline-none font-mono">
-          </div>
-        </div>
-
-        <div>
-          <label class="block text-xs text-slate-400 mb-1">Purpose of Visit (Kyon visit kiya?)</label>
-          <select id="visPurpose" class="w-full bg-slate-800 border border-slate-700 p-2.5 rounded-xl text-sm text-white outline-none">
-            <option value="Admission Enquiry / Counselling">Admission Enquiry / Counselling</option>
-            <option value="Parent Teacher Meeting / Visit">Parent / Guardian Visit</option>
-            <option value="Guest Lecture / Placement / Company">Guest / Company Placement</option>
-            <option value="Campus Fest / Event Guest">Campus Fest / Event Attendee</option>
-            <option value="Vendor / Delivery / Other">Vendor / Delivery / Maintenance</option>
-          </select>
-        </div>
-
-        <button onclick="requestVisitorOtp()" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold p-3 rounded-xl text-sm transition">
-          Generate Verification OTP
+      <!-- Folder Navigation Buttons -->
+      <div class="flex items-center gap-2 overflow-x-auto pb-2">
+        <button onclick="switchFolder('admission')" id="fbtn-admission" class="folder-btn px-4 py-2 rounded-2xl text-xs font-bold bg-purple-600 text-white flex items-center gap-1.5 transition whitespace-nowrap shadow-md">
+          <span>🎓</span> Admission Enquiry <span class="bg-purple-900 px-2 py-0.5 rounded-full text-[10px]">{{ admission_visitors|length }}</span>
+        </button>
+        <button onclick="switchFolder('parents')" id="fbtn-parents" class="folder-btn px-4 py-2 rounded-2xl text-xs font-bold text-slate-400 hover:text-white bg-slate-800 flex items-center gap-1.5 transition whitespace-nowrap">
+          <span>👨‍👩‍👧</span> Parent Visits <span class="bg-slate-900 px-2 py-0.5 rounded-full text-[10px]">{{ parent_visitors|length }}</span>
+        </button>
+        <button onclick="switchFolder('placement')" id="fbtn-placement" class="folder-btn px-4 py-2 rounded-2xl text-xs font-bold text-slate-400 hover:text-white bg-slate-800 flex items-center gap-1.5 transition whitespace-nowrap">
+          <span>💼</span> Placements & Drives <span class="bg-slate-900 px-2 py-0.5 rounded-full text-[10px]">{{ placement_visitors|length }}</span>
+        </button>
+        <button onclick="switchFolder('fest')" id="fbtn-fest" class="folder-btn px-4 py-2 rounded-2xl text-xs font-bold text-slate-400 hover:text-white bg-slate-800 flex items-center gap-1.5 transition whitespace-nowrap">
+          <span>🎪</span> Campus Fest & Guests <span class="bg-slate-900 px-2 py-0.5 rounded-full text-[10px]">{{ fest_visitors|length }}</span>
+        </button>
+        <button onclick="switchFolder('all')" id="fbtn-all" class="folder-btn px-4 py-2 rounded-2xl text-xs font-bold text-slate-400 hover:text-white bg-slate-800 flex items-center gap-1.5 transition whitespace-nowrap">
+          <span>📑</span> All Records <span class="bg-slate-900 px-2 py-0.5 rounded-full text-[10px]">{{ all_visitors|length }}</span>
         </button>
       </div>
 
-      <div id="visStep2" class="space-y-3 hidden">
-        <div id="visOtpNotice" class="text-xs bg-purple-950/60 border border-purple-500/40 p-2.5 rounded-xl text-purple-300 font-mono text-center"></div>
-        <div>
-          <label class="block text-xs text-slate-400 mb-1">Enter Verification OTP</label>
-          <input id="visOtp" type="text" placeholder="• • • • • •" class="w-full bg-slate-800 border border-slate-700 p-2.5 rounded-xl text-center text-lg font-mono text-white outline-none">
+      <!-- FOLDER 1: ADMISSION ENQUIRY -->
+      <div id="folder-admission" class="folder-content overflow-x-auto rounded-2xl border border-slate-800">
+        <table class="w-full text-xs text-left">
+          <thead class="bg-purple-950/40 text-purple-300 uppercase tracking-wider text-[10px]">
+            <tr>
+              <th class="p-3.5">Gate Pass</th>
+              <th class="p-3.5">Candidate / Parent Name</th>
+              <th class="p-3.5">Contact Number</th>
+              <th class="p-3.5">Purpose</th>
+              <th class="p-3.5">Registered Timestamp</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-800">
+            {% for v in admission_visitors %}
+            <tr class="hover:bg-slate-800/40">
+              <td class="p-3.5 font-mono text-purple-400 font-bold">{{ v.pass_id }}</td>
+              <td class="p-3.5 font-bold text-white">{{ v.name }}</td>
+              <td class="p-3.5 text-slate-300 font-mono">{{ v.mobile }}</td>
+              <td class="p-3.5"><span class="bg-purple-500/10 text-purple-400 px-2 py-0.5 rounded-full text-[10px] font-semibold">{{ v.purpose }}</span></td>
+              <td class="p-3.5 text-slate-500 font-mono">{{ v.entry_time }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5" class="p-6 text-center text-slate-500">Admission folder me abhi koi visitor nahi hai.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- FOLDER 2: PARENT VISITS -->
+      <div id="folder-parents" class="folder-content hidden overflow-x-auto rounded-2xl border border-slate-800">
+        <table class="w-full text-xs text-left">
+          <thead class="bg-blue-950/40 text-blue-300 uppercase tracking-wider text-[10px]">
+            <tr>
+              <th class="p-3.5">Gate Pass</th>
+              <th class="p-3.5">Parent Name</th>
+              <th class="p-3.5">Contact Number</th>
+              <th class="p-3.5">Purpose</th>
+              <th class="p-3.5">Registered Timestamp</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-800">
+            {% for v in parent_visitors %}
+            <tr class="hover:bg-slate-800/40">
+              <td class="p-3.5 font-mono text-blue-400 font-bold">{{ v.pass_id }}</td>
+              <td class="p-3.5 font-bold text-white">{{ v.name }}</td>
+              <td class="p-3.5 text-slate-300 font-mono">{{ v.mobile }}</td>
+              <td class="p-3.5"><span class="bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded-full text-[10px] font-semibold">{{ v.purpose }}</span></td>
+              <td class="p-3.5 text-slate-500 font-mono">{{ v.entry_time }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5" class="p-6 text-center text-slate-500">Parent visits folder me koi record nahi hai.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- FOLDER 3: PLACEMENTS -->
+      <div id="folder-placement" class="folder-content hidden overflow-x-auto rounded-2xl border border-slate-800">
+        <table class="w-full text-xs text-left">
+          <thead class="bg-emerald-950/40 text-emerald-300 uppercase tracking-wider text-[10px]">
+            <tr>
+              <th class="p-3.5">Gate Pass</th>
+              <th class="p-3.5">Company Official / HR</th>
+              <th class="p-3.5">Contact Number</th>
+              <th class="p-3.5">Purpose</th>
+              <th class="p-3.5">Timestamp</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-800">
+            {% for v in placement_visitors %}
+            <tr class="hover:bg-slate-800/40">
+              <td class="p-3.5 font-mono text-emerald-400 font-bold">{{ v.pass_id }}</td>
+              <td class="p-3.5 font-bold text-white">{{ v.name }}</td>
+              <td class="p-3.5 text-slate-300 font-mono">{{ v.mobile }}</td>
+              <td class="p-3.5"><span class="bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded-full text-[10px] font-semibold">{{ v.purpose }}</span></td>
+              <td class="p-3.5 text-slate-500 font-mono">{{ v.entry_time }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5" class="p-6 text-center text-slate-500">Placement drives folder me koi record nahi hai.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- FOLDER 4: FEST & GUESTS -->
+      <div id="folder-fest" class="folder-content hidden overflow-x-auto rounded-2xl border border-slate-800">
+        <table class="w-full text-xs text-left">
+          <thead class="bg-amber-950/40 text-amber-300 uppercase tracking-wider text-[10px]">
+            <tr>
+              <th class="p-3.5">Gate Pass</th>
+              <th class="p-3.5">Guest Name</th>
+              <th class="p-3.5">Contact Number</th>
+              <th class="p-3.5">Purpose</th>
+              <th class="p-3.5">Timestamp</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-800">
+            {% for v in fest_visitors %}
+            <tr class="hover:bg-slate-800/40">
+              <td class="p-3.5 font-mono text-amber-400 font-bold">{{ v.pass_id }}</td>
+              <td class="p-3.5 font-bold text-white">{{ v.name }}</td>
+              <td class="p-3.5 text-slate-300 font-mono">{{ v.mobile }}</td>
+              <td class="p-3.5"><span class="bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded-full text-[10px] font-semibold">{{ v.purpose }}</span></td>
+              <td class="p-3.5 text-slate-500 font-mono">{{ v.entry_time }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5" class="p-6 text-center text-slate-500">Fest/Events folder me abhi koi record nahi hai.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- FOLDER 5: ALL RECORDS -->
+      <div id="folder-all" class="folder-content hidden overflow-x-auto rounded-2xl border border-slate-800">
+        <table class="w-full text-xs text-left">
+          <thead class="bg-slate-800/80 text-slate-400 uppercase tracking-wider text-[10px]">
+            <tr>
+              <th class="p-3.5">Pass ID</th>
+              <th class="p-3.5">Name</th>
+              <th class="p-3.5">Mobile</th>
+              <th class="p-3.5">Purpose</th>
+              <th class="p-3.5">Entry Time</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-800">
+            {% for v in all_visitors %}
+            <tr class="hover:bg-slate-800/40">
+              <td class="p-3.5 font-mono text-indigo-400 font-bold">{{ v.pass_id }}</td>
+              <td class="p-3.5 font-bold text-white">{{ v.name }}</td>
+              <td class="p-3.5 text-slate-300 font-mono">{{ v.mobile }}</td>
+              <td class="p-3.5 text-slate-400">{{ v.purpose }}</td>
+              <td class="p-3.5 text-slate-500 font-mono">{{ v.entry_time }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5" class="p-6 text-center text-slate-500">Abhi tak koi entry darj nahi hui hai.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+
+    <!-- 👥 3. CORE TEAM ACCESS INFO -->
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6">
+      <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Authorized Core Team Members</h4>
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {% for id, mem in core_team.items() %}
+        <div class="bg-slate-950/60 border border-slate-800 p-3 rounded-2xl">
+          <div class="text-xs font-bold text-white">{{ mem.name }}</div>
+          <div class="text-[10px] text-rose-400 font-mono">{{ id }}</div>
+          <div class="text-[10px] text-slate-500">{{ mem.role }}</div>
         </div>
-        <button onclick="verifyVisitorOtp()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold p-3 rounded-xl text-sm transition">
-          Confirm Entry & Generate Pass
-        </button>
-      </div>
-
-      <p id="visErr" class="text-xs text-red-400 text-center hidden"></p>
-    </div>
-  </div>
-
-  <!-- ================= ⚠️ 3. COMPLAINT MODAL ================= -->
-  <div id="complaintModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
-    <div class="bg-slate-900 border border-slate-800 p-6 rounded-3xl max-w-md w-full space-y-3">
-      <div class="flex justify-between items-center pb-2 border-b border-slate-800">
-        <h3 class="font-bold text-base text-white">Campus Grievance Redressal</h3>
-        <button onclick="closeModal('complaintModal')" class="text-slate-400 hover:text-white">✕</button>
-      </div>
-
-      <div>
-        <label class="block text-xs text-slate-400 mb-1">Category</label>
-        <select id="cmpCat" class="w-full bg-slate-800 border border-slate-700 p-2 rounded-xl text-sm text-white outline-none">
-          <option value="Campus Facilities">Campus Facilities (Water / AC / Electricity)</option>
-          <option value="Lab & Hardware">Lab / Broken Computers / Internet</option>
-          <option value="Cleanliness">Cleanliness & Hygiene</option>
-          <option value="Navigation Route">Map Route Bug</option>
-        </select>
-      </div>
-
-      <div>
-        <label class="block text-xs text-slate-400 mb-1">Location / Classroom</label>
-        <input id="cmpLoc" type="text" placeholder="e.g. AB-2, 2nd Floor, Room 204" class="w-full bg-slate-800 border border-slate-700 p-2 rounded-xl text-sm text-white outline-none">
-      </div>
-
-      <div>
-        <label class="block text-xs text-slate-400 mb-1">Problem Description</label>
-        <textarea id="cmpDesc" rows="3" placeholder="Samasya ka vivaran..." class="w-full bg-slate-800 border border-slate-700 p-2 rounded-xl text-sm text-white outline-none"></textarea>
-      </div>
-
-      <p id="cmpStatus" class="text-xs font-bold hidden"></p>
-
-      <div class="flex justify-end gap-2 pt-2 border-t border-slate-800">
-        <button onclick="closeModal('complaintModal')" class="px-3 py-1.5 border border-slate-700 rounded-xl text-xs text-slate-400">Cancel</button>
-        <button onclick="submitGrievance()" class="px-4 py-1.5 bg-blue-600 hover:bg-blue-500 rounded-xl text-xs font-bold text-white">Submit Ticket</button>
+        {% endfor %}
       </div>
     </div>
-  </div>
 
-  <!-- ================= JAVASCRIPT ================= -->
+  </main>
+
   <script>
-    const LOCATIONS = {{ locations|tojson }};
-    const MAIN_GATE = [28.4738, 77.4882];
-    let routeLine = null;
-    let activeUser = null;
+    function switchFolder(folderId) {
+      document.querySelectorAll('.folder-content').forEach(el => el.classList.add('hidden'));
+      const activeFolder = document.getElementById('folder-' + folderId);
+      if (activeFolder) activeFolder.classList.remove('hidden');
 
-    // 1. Map Init
-    const map = L.map('map').setView([28.4728, 77.4897], 18);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
-
-    L.marker(MAIN_GATE).addTo(map).bindPopup("<b>📍 Gate 1 (Campus Main Entrance)</b>");
-
-    function navigateTo(lat, lng, name, desc) {
-      if (routeLine) map.removeLayer(routeLine);
-      const mid = [(MAIN_GATE[0] + lat) / 2, (MAIN_GATE[1] + lng) / 2];
-      routeLine = L.polyline([MAIN_GATE, mid, [lat, lng]], {
-        color: '#2563eb', weight: 6, dashArray: '8, 8', opacity: 0.95
-      }).addTo(map);
-
-      map.fitBounds(routeLine.getBounds(), { padding: [50, 50] });
-      L.popup().setLatLng([lat, lng]).setContent(`<b>${name}</b><br><small style="color:#64748b;">${desc}</small>`).openOn(map);
-    }
-
-    const chips = document.getElementById('navChips');
-    for (let k in LOCATIONS) {
-      let loc = LOCATIONS[k];
-      let m = L.marker([loc.lat, loc.lng]).addTo(map);
-      m.bindPopup(`<b>${loc.name}</b><br><small>${loc.desc}</small>`);
-      m.on('click', () => navigateTo(loc.lat, loc.lng, loc.name, loc.desc));
-
-      let b = document.createElement('button');
-      b.className = "text-xs bg-slate-900 hover:bg-slate-800 border border-slate-700 px-2.5 py-1 rounded-xl text-slate-200 transition";
-      b.innerText = loc.name.split('(')[0].trim();
-      b.onclick = () => navigateTo(loc.lat, loc.lng, loc.name, loc.desc);
-      chips.appendChild(b);
-    }
-
-    function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
-    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
-
-    // 2. Student Auth
-    let tempStudentAdm = "";
-    async function requestStudentOtp() {
-      const adm = document.getElementById('stdAdm').value.trim().toUpperCase();
-      const err = document.getElementById('stdErr');
-      err.classList.add('hidden');
-
-      if (!adm) {
-        err.innerText = "Admission number daalein.";
-        err.classList.remove('hidden');
-        return;
-      }
-
-      const res = await fetch('/student/send-otp', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ admission_no: adm })
+      document.querySelectorAll('.folder-btn').forEach(btn => {
+        btn.classList.remove('bg-purple-600', 'text-white', 'shadow-md');
+        btn.classList.add('text-slate-400', 'bg-slate-800');
       });
-      const data = await res.json();
-      if(data.success) {
-        tempStudentAdm = adm;
-        document.getElementById('stdStep1').classList.add('hidden');
-        document.getElementById('stdStep2').classList.remove('hidden');
-        document.getElementById('stdOtpMsg').innerText = data.message;
-        document.getElementById('stdOtp').value = data.otp;
-      } else {
-        err.innerText = data.message;
-        err.classList.remove('hidden');
-      }
-    }
 
-    async function verifyStudentOtp() {
-      const otp = document.getElementById('stdOtp').value.trim();
-      const res = await fetch('/student/verify-otp', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ admission_no: tempStudentAdm, otp: otp })
-      });
-      const data = await res.json();
-      if(data.success) {
-        activeUser = data.user.name + ` (${tempStudentAdm})`;
-        closeModal('studentModal');
-        document.getElementById('authSlot').innerHTML = `
-          <div class="text-xs bg-slate-900 border border-slate-700 px-3 py-1.5 rounded-xl text-emerald-400 font-bold flex items-center gap-1.5">
-            <span>🎓</span> ${data.user.name}
-          </div>
-        `;
-      } else alert(data.message);
-    }
-
-    // 3. Visitor Registration
-    let tempVisitorMobile = "";
-    async function requestVisitorOtp() {
-      const name = document.getElementById('visName').value.trim();
-      const mobile = document.getElementById('visMobile').value.trim();
-      const aadhaar = document.getElementById('visAadhaar').value.trim();
-      const purpose = document.getElementById('visPurpose').value;
-      const err = document.getElementById('visErr');
-      err.classList.add('hidden');
-
-      if (!name || !mobile || !aadhaar) {
-        err.innerText = "Saare details daalna anivarya hai.";
-        err.classList.remove('hidden');
-        return;
-      }
-
-      const res = await fetch('/visitor/send-otp', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ name, mobile, aadhaar, purpose })
-      });
-      const data = await res.json();
-      if(data.success) {
-        tempVisitorMobile = mobile;
-        document.getElementById('visStep1').classList.add('hidden');
-        document.getElementById('visStep2').classList.remove('hidden');
-        document.getElementById('visOtpNotice').innerText = data.message;
-        document.getElementById('visOtp').value = data.otp;
-      } else {
-        err.innerText = data.message;
-        err.classList.remove('hidden');
-      }
-    }
-
-    async function verifyVisitorOtp() {
-      const otp = document.getElementById('visOtp').value.trim();
-      const res = await fetch('/visitor/verify-otp', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ mobile: tempVisitorMobile, otp: otp })
-      });
-      const data = await res.json();
-      if(data.success) {
-        closeModal('visitorModal');
-        alert(`🎉 Gate Pass Generated: ${data.visitor.pass_id}\nGuest: ${data.visitor.name}`);
-        document.getElementById('authSlot').innerHTML = `
-          <div class="text-xs bg-purple-950/60 border border-purple-500/40 px-3 py-1.5 rounded-xl text-purple-300 font-bold flex items-center gap-1.5">
-            <span>🪪</span> Pass: ${data.visitor.pass_id}
-          </div>
-        `;
-      } else alert(data.message);
-    }
-
-    // 4. Grievance
-    async function submitGrievance() {
-      const desc = document.getElementById('cmpDesc').value.trim();
-      const loc = document.getElementById('cmpLoc').value.trim();
-      const cat = document.getElementById('cmpCat').value;
-      const st = document.getElementById('cmpStatus');
-
-      if (!desc) {
-        st.innerText = "Vivaran likhein.";
-        st.className = "text-xs text-red-400 block font-bold";
-        return;
-      }
-
-      const res = await fetch('/submit-complaint', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ description: desc, location: loc, category: cat, admission_no: activeUser || "Guest" })
-      });
-      const data = await res.json();
-      if(data.success) {
-        st.innerHTML = `✅ ${data.message} <br><b>Ticket: ${data.ticket_id}</b>`;
-        st.className = "text-xs text-emerald-400 block font-bold";
-        setTimeout(() => closeModal('complaintModal'), 2000);
+      const activeBtn = document.getElementById('fbtn-' + folderId);
+      if (activeBtn) {
+        activeBtn.classList.remove('text-slate-400', 'bg-slate-800');
+        activeBtn.classList.add('bg-purple-600', 'text-white', 'shadow-md');
       }
     }
   </script>
+  {% endif %}
+
 </body>
 </html>
