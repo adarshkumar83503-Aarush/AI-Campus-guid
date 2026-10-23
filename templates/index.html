@@ -62,7 +62,7 @@
             🪪
           </div>
           <h3 class="text-base font-bold text-white">Campus Visitor</h3>
-          <p class="text-xs text-slate-400 mt-1">Parents, Guests aur External candidates ke liye permanent digital pass banayein.</p>
+          <p class="text-xs text-slate-400 mt-1">Parents, Guests aur External candidates ke liye digital gate pass banayein.</p>
           <button class="mt-4 w-full bg-purple-600/30 hover:bg-purple-600 text-purple-200 hover:text-white py-1.5 rounded-xl text-xs font-bold border border-purple-500/30 transition">
             Visitor Pass →
           </button>
@@ -86,7 +86,7 @@
             🔐
           </div>
           <h3 class="text-base font-bold text-white">Team Admin</h3>
-          <p class="text-xs text-slate-400 mt-1">Permanent visitor logs aur grievance complaints dashboard access karein.</p>
+          <p class="text-xs text-slate-400 mt-1">Permanent database logs, visitors registry aur complaints dashboard.</p>
           <button class="mt-4 w-full bg-rose-600/30 hover:bg-rose-600 text-rose-200 hover:text-white py-1.5 rounded-xl text-xs font-bold border border-rose-500/30 transition">
             Admin Console →
           </button>
@@ -112,13 +112,16 @@
       </div>
     </div>
 
-    <!-- 4 Tabs -->
-    <nav class="flex items-center gap-1 bg-slate-900 border border-slate-800 p-1 rounded-2xl overflow-x-auto">
+    <!-- 5 Tabs Navigation -->
+    <nav class="flex items-center gap-1 bg-slate-900 border border-slate-800 p-1 rounded-2xl overflow-x-auto max-w-[55vw] sm:max-w-none">
       <button onclick="switchTab('explore')" id="tab-btn-explore" class="tab-btn px-3 py-1.5 text-xs font-semibold rounded-xl bg-blue-600 text-white transition whitespace-nowrap">
         🧭 Explore Map
       </button>
       <button onclick="switchTab('counselling')" id="tab-btn-counselling" class="tab-btn px-3 py-1.5 text-xs font-semibold rounded-xl text-slate-400 hover:text-white transition whitespace-nowrap">
         🎓 Predictor
+      </button>
+      <button onclick="switchTab('complaints')" id="tab-btn-complaints" class="tab-btn px-3 py-1.5 text-xs font-semibold rounded-xl text-slate-400 hover:text-white transition whitespace-nowrap">
+        ⚠️ Complaints
       </button>
       <button onclick="switchTab('lostfound')" id="tab-btn-lostfound" class="tab-btn px-3 py-1.5 text-xs font-semibold rounded-xl text-slate-400 hover:text-white transition whitespace-nowrap">
         🔍 Lost & Found
@@ -128,11 +131,8 @@
       </button>
     </nav>
 
+    <!-- Header Actions -->
     <div class="flex items-center gap-2">
-      <button onclick="openModal('complaintModal')" class="text-xs bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 px-2.5 py-1.5 rounded-xl font-semibold transition">
-        ⚠️ Issue
-      </button>
-
       <div id="currentUserBadge" class="text-xs bg-slate-900 border border-slate-700 px-3 py-1.5 rounded-xl text-emerald-400 font-bold whitespace-nowrap">
         Guest
       </div>
@@ -150,27 +150,42 @@
     <div id="tab-explore" class="tab-content relative w-full h-[calc(100vh-75px)]">
       <div id="map"></div>
 
-      <!-- Quick Destinations -->
-      <div class="absolute top-4 left-4 z-[400] max-w-xs sm:max-w-sm w-full bg-slate-950/90 backdrop-blur-md p-3.5 rounded-2xl border border-slate-800 shadow-2xl space-y-2 pointer-events-auto">
+      <!-- Quick Destinations & MANUAL SEARCH BAR -->
+      <div class="absolute top-4 left-4 z-[400] max-w-xs sm:max-w-sm w-full bg-slate-950/90 backdrop-blur-md p-3.5 rounded-2xl border border-slate-800 shadow-2xl space-y-2.5 pointer-events-auto">
         <div class="flex justify-between items-center">
-          <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Tap Destination</span>
+          <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Search & Navigate</span>
           <span id="originStatusBadge" class="text-[10px] bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2 py-0.5 rounded-full font-semibold">
             From: Gate 1
           </span>
         </div>
+
+        <!-- 🔍 Manual Search Input -->
+        <div class="relative">
+          <input id="destinationSearchInput" oninput="filterDestinations()" type="text" placeholder="🔍 Search Block, Library, Audi..." 
+                 class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 outline-none focus:border-blue-500">
+        </div>
+
+        <!-- Filterable Chips -->
         <div class="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto" id="navChips"></div>
       </div>
 
-      <!-- Route Guidance Card -->
-      <div id="routeDetailsCard" class="absolute bottom-6 left-4 right-4 sm:left-auto sm:right-6 sm:w-96 z-[400] bg-slate-900/95 backdrop-blur-lg border border-slate-800 rounded-3xl p-5 shadow-2xl space-y-3 hidden pointer-events-auto">
+      <!-- Route Guidance Card (With Minimize & Close Controls) -->
+      <div id="routeDetailsCard" class="absolute bottom-6 left-4 right-4 sm:left-auto sm:right-6 sm:w-96 z-[400] bg-slate-900/95 backdrop-blur-lg border border-slate-800 rounded-3xl p-5 shadow-2xl space-y-3 hidden pointer-events-auto transition-all">
         <div class="flex justify-between items-start">
           <div>
             <span class="text-[10px] uppercase font-bold text-blue-400 tracking-wider">Live Route Guidance</span>
             <h4 id="destTitle" class="text-base font-extrabold text-white mt-0.5">Destination</h4>
           </div>
-          <button onclick="closeRouteCard()" class="text-slate-400 hover:text-white text-sm font-bold">✕</button>
+          <div class="flex items-center gap-2">
+            <!-- 🔽 Minimize Button -->
+            <button onclick="toggleRouteCardMinimize()" title="Minimize / Expand" id="btnMinimizeRoute" class="text-slate-400 hover:text-white text-xs font-bold bg-slate-800 hover:bg-slate-700 px-2 py-1 rounded-lg border border-slate-700">
+              —
+            </button>
+            <button onclick="closeRouteCard()" title="Close" class="text-slate-400 hover:text-white text-sm font-bold bg-slate-800 hover:bg-slate-700 px-2 py-0.5 rounded-lg border border-slate-700">✕</button>
+          </div>
         </div>
 
+        <!-- Distance & Time Overview -->
         <div class="grid grid-cols-2 gap-2 bg-slate-950/70 p-2.5 rounded-2xl border border-slate-800/80">
           <div>
             <div class="text-[10px] text-slate-400">Road Distance</div>
@@ -182,7 +197,8 @@
           </div>
         </div>
 
-        <div class="space-y-1.5">
+        <!-- Minimizable Direction Steps Section -->
+        <div id="routeDetailsBody" class="space-y-1.5">
           <div class="text-[11px] font-bold text-slate-300">Live Pathway Directions:</div>
           <div id="guideText" class="text-xs text-slate-300 max-h-36 overflow-y-auto space-y-1 bg-slate-800/60 p-3 rounded-xl border border-slate-700/50"></div>
         </div>
@@ -223,7 +239,57 @@
       </div>
     </div>
 
-    <!-- TAB 3: LOST & FOUND -->
+    <!-- TAB 3: COMPLAINTS & GRIEVANCE REDRESSAL -->
+    <div id="tab-complaints" class="tab-content hidden max-w-5xl mx-auto p-4 sm:p-8 space-y-6">
+      <div class="bg-slate-900 border border-slate-800 p-6 sm:p-8 rounded-3xl space-y-4 shadow-xl">
+        <div class="flex justify-between items-start">
+          <div>
+            <h3 class="text-xl font-bold text-white flex items-center gap-2">
+              <span>⚠️</span> Campus Grievance Redressal Portal
+            </h3>
+            <p class="text-xs text-slate-400 mt-1">Classroom, Labs, Water, WiFi ya Sanitation related issues yahan darj karein.</p>
+          </div>
+          <span class="text-[10px] bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2.5 py-1 rounded-full font-bold">
+            24-48h Resolution
+          </span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+          <div>
+            <label class="block text-[11px] font-bold text-slate-400 mb-1">Issue Category</label>
+            <select id="mainCmpCategory" class="w-full bg-slate-800 border border-slate-700 p-2.5 rounded-xl text-sm text-white outline-none focus:border-amber-500">
+              <option value="Infrastructure / Electricity">Infrastructure / Electricity</option>
+              <option value="WiFi & Lab PCs">WiFi & Lab PCs</option>
+              <option value="Sanitation & Cleanliness">Sanitation & Cleanliness</option>
+              <option value="Canteen / Water Cooler">Canteen / Water Cooler</option>
+              <option value="Other Issue">Other Issue</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-slate-400 mb-1">Campus Location</label>
+            <input id="mainCmpLocation" type="text" placeholder="e.g. AB-2 3rd Floor Lab 6" class="w-full bg-slate-800 border border-slate-700 p-2.5 rounded-xl text-sm text-white outline-none focus:border-amber-500">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-bold text-slate-400 mb-1">Samasya ka Vivaran (Description)</label>
+          <textarea id="mainCmpDesc" rows="3" placeholder="Samasya ke baare me vistaar se batayein..." class="w-full bg-slate-800 border border-slate-700 p-3 rounded-xl text-sm text-white outline-none focus:border-amber-500"></textarea>
+        </div>
+
+        <button onclick="submitMainTabGrievance()" class="w-full sm:w-auto bg-amber-600 hover:bg-amber-500 text-white font-bold px-6 py-2.5 rounded-xl text-sm transition shadow-lg shadow-amber-600/20">
+          Submit Grievance Ticket →
+        </button>
+      </div>
+
+      <div class="space-y-3">
+        <h4 class="text-sm font-bold text-white flex items-center gap-2">
+          <span>📋</span> Recent Campus Grievances (Live Database)
+        </h4>
+        <div id="complaintsListContainer" class="space-y-2"></div>
+      </div>
+    </div>
+
+    <!-- TAB 4: LOST & FOUND -->
     <div id="tab-lostfound" class="tab-content hidden max-w-5xl mx-auto p-4 sm:p-8 space-y-6">
       <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-slate-900 border border-slate-800 p-6 rounded-3xl">
         <div>
@@ -237,11 +303,10 @@
         </button>
       </div>
 
-      <!-- Items Grid (Direct SQLite Fetch) -->
       <div id="lostFoundGrid" class="grid grid-cols-1 sm:grid-cols-3 gap-4"></div>
     </div>
 
-    <!-- TAB 4: CLUBS -->
+    <!-- TAB 5: CLUBS -->
     <div id="tab-clubs" class="tab-content hidden max-w-5xl mx-auto p-4 sm:p-8 space-y-6">
       <div class="bg-slate-900 border border-slate-800 p-6 rounded-3xl">
         <h3 class="text-xl font-bold text-white flex items-center gap-2">
@@ -279,9 +344,9 @@
 
   </main>
 
-  <!-- ================= 🪪 VISITOR MODAL ================= -->
+  <!-- ================= 🪪 VISITOR MODAL (WITH REQUIRED ADMISSION DOCUMENTS) ================= -->
   <div id="visitorModal" class="fixed inset-0 bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-4 z-[2500]">
-    <div class="bg-slate-900 border border-slate-800 p-6 rounded-3xl max-w-md w-full space-y-4 shadow-2xl">
+    <div class="bg-slate-900 border border-slate-800 p-6 rounded-3xl max-w-md w-full space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center pb-2 border-b border-slate-800">
         <h3 class="font-bold text-base text-white">Visitor Registration & Gate Pass</h3>
         <button onclick="closeModal('visitorModal')" class="text-slate-400 hover:text-white">✕</button>
@@ -304,7 +369,7 @@
         </div>
         <div>
           <label class="block text-xs text-slate-400 mb-1">Purpose of Visit</label>
-          <select id="visPurpose" class="w-full bg-slate-800 border border-slate-700 p-2.5 rounded-xl text-sm text-white outline-none">
+          <select id="visPurpose" onchange="checkVisitorPurposeDocs()" class="w-full bg-slate-800 border border-slate-700 p-2.5 rounded-xl text-sm text-white outline-none focus:border-purple-500">
             <option value="Admission Enquiry">Admission Enquiry</option>
             <option value="Parent Visit">Parent Visit</option>
             <option value="Placement / Company Drive">Placement / Company Drive</option>
@@ -312,6 +377,22 @@
             <option value="Other">Other</option>
           </select>
         </div>
+
+        <!-- 📄 ADMISSION REQUIRED DOCUMENTS NOTICE (DEFAULT VISIBLE FOR ADMISSION) -->
+        <div id="admissionDocsNotice" class="bg-purple-950/40 border border-purple-500/30 p-3.5 rounded-2xl space-y-1.5 text-left">
+          <div class="flex items-center gap-1.5 text-xs font-bold text-purple-300">
+            <span>📑</span> Required Documents for Admission:
+          </div>
+          <ul class="text-[11px] text-slate-300 list-disc list-inside space-y-1">
+            <li>10th & 12th Original Marksheets & Photocopies</li>
+            <li>JEE Mains / CUET Score Card & Admit Card</li>
+            <li>Aadhaar Card (Student & Parents)</li>
+            <li>Transfer Certificate (TC) & Migration Certificate</li>
+            <li>5 Passport Size Recent Photographs</li>
+            <li>Category / Income Certificate (If applicable)</li>
+          </ul>
+        </div>
+
         <button onclick="requestVisitorOtp()" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold p-3 rounded-xl text-sm transition">
           Generate Verification OTP
         </button>
@@ -338,7 +419,7 @@
       
       <div id="stdStep1" class="space-y-3">
         <label class="block text-xs text-slate-400">Admission Number</label>
-        <input id="stdAdm" type="text" value="25116CN001" placeholder="e.g. 25116CN001" class="w-full bg-slate-800 border border-slate-700 p-2.5 rounded-xl text-sm font-mono uppercase text-white outline-none">
+        <input id="stdAdm" type="text" value="25116CN001" placeholder="e.g. 25116CN001" class="w-full bg-slate-800 border border-slate-700 p-2.5 rounded-xl text-sm font-mono uppercase text-white outline-none focus:border-blue-500">
         <button onclick="requestStudentOtp()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold p-2.5 rounded-xl text-sm transition">
           Generate Verification OTP
         </button>
@@ -375,22 +456,6 @@
     </div>
   </div>
 
-  <!-- ================= ⚠️ GRIEVANCE MODAL ================= -->
-  <div id="complaintModal" class="fixed inset-0 bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-4 z-[2500]">
-    <div class="bg-slate-900 border border-slate-800 p-6 rounded-3xl max-w-md w-full space-y-3 shadow-2xl">
-      <div class="flex justify-between items-center pb-2 border-b border-slate-800">
-        <h3 class="font-bold text-base text-white">Campus Grievance Redressal</h3>
-        <button onclick="closeModal('complaintModal')" class="text-slate-400 hover:text-white">✕</button>
-      </div>
-      <input id="cmpLoc" type="text" placeholder="Location / Classroom" class="w-full bg-slate-800 border border-slate-700 p-2 rounded-xl text-sm text-white outline-none">
-      <textarea id="cmpDesc" rows="3" placeholder="Samasya ka vivaran..." class="w-full bg-slate-800 border border-slate-700 p-2 rounded-xl text-sm text-white outline-none"></textarea>
-      <div class="flex justify-end gap-2 pt-2">
-        <button onclick="closeModal('complaintModal')" class="px-3 py-1.5 border border-slate-700 rounded-xl text-xs text-slate-400">Cancel</button>
-        <button onclick="submitGrievance()" class="px-4 py-1.5 bg-blue-600 text-xs font-bold text-white rounded-xl">Submit Ticket</button>
-      </div>
-    </div>
-  </div>
-
   <!-- ================= LOST & FOUND POST MODAL ================= -->
   <div id="lostPostModal" class="fixed inset-0 bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-4 z-[2500]">
     <div class="bg-slate-900 border border-slate-800 p-6 rounded-3xl max-w-md w-full space-y-3 shadow-2xl">
@@ -422,6 +487,7 @@
     let routingControl = null;
     let activeDestData = null;
     let activeUser = null;
+    let isRouteMinimized = false;
 
     // 1. Tab Switcher
     function switchTab(tabId) {
@@ -441,6 +507,8 @@
 
       if (tabId === 'explore') {
         setTimeout(() => map.invalidateSize(), 200);
+      } else if (tabId === 'complaints') {
+        loadComplaintsFromDb();
       }
     }
 
@@ -502,7 +570,26 @@
           div.innerHTML = `<span class="text-blue-400 font-bold">${idx + 1}.</span> ${s.text} (${Math.round(s.distance)}m)`;
           box.appendChild(div);
         });
+
+        // Reset minimize state to expanded whenever a new route is drawn
+        isRouteMinimized = false;
+        document.getElementById('routeDetailsBody').classList.remove('hidden');
+        document.getElementById('btnMinimizeRoute').innerText = "—";
       });
+    }
+
+    function toggleRouteCardMinimize() {
+      const body = document.getElementById('routeDetailsBody');
+      const btn = document.getElementById('btnMinimizeRoute');
+      if (isRouteMinimized) {
+        body.classList.remove('hidden');
+        btn.innerText = "—";
+        isRouteMinimized = false;
+      } else {
+        body.classList.add('hidden');
+        btn.innerText = "▢";
+        isRouteMinimized = true;
+      }
     }
 
     function closeRouteCard() {
@@ -510,29 +597,62 @@
       if (routingControl) map.removeControl(routingControl);
     }
 
-    // Chips
-    const chips = document.getElementById('navChips');
+    // 5. Render Chips & Manual Search Filter
+    function renderDestinationChips(filterText = "") {
+      const chips = document.getElementById('navChips');
+      chips.innerHTML = '';
+
+      for (let k in LOCATIONS) {
+        let l = LOCATIONS[k];
+        if (filterText && !l.name.toLowerCase().includes(filterText.toLowerCase()) && !l.desc.toLowerCase().includes(filterText.toLowerCase())) {
+          continue;
+        }
+
+        let b = document.createElement('button');
+        b.className = "text-xs bg-slate-900 hover:bg-slate-800 border border-slate-700 px-2.5 py-1 rounded-xl text-slate-200 transition";
+        b.innerText = l.name.split('(')[0];
+        b.onclick = () => drawRealRoadRoute(l.lat, l.lng, l.name, l.desc);
+        chips.appendChild(b);
+      }
+
+      if (chips.children.length === 0) {
+        chips.innerHTML = '<span class="text-[11px] text-slate-500 py-1">Koi location nahi mili</span>';
+      }
+    }
+
+    function filterDestinations() {
+      const val = document.getElementById('destinationSearchInput').value.trim();
+      renderDestinationChips(val);
+    }
+
+    // Map markers
     for (let k in LOCATIONS) {
       let l = LOCATIONS[k];
       let m = L.marker([l.lat, l.lng]).addTo(map).bindPopup(`<b>${l.name}</b>`);
       m.on('click', () => drawRealRoadRoute(l.lat, l.lng, l.name, l.desc));
-      let b = document.createElement('button');
-      b.className = "text-xs bg-slate-900 border border-slate-700 px-2.5 py-1 rounded-xl text-slate-200";
-      b.innerText = l.name.split('(')[0];
-      b.onclick = () => drawRealRoadRoute(l.lat, l.lng, l.name, l.desc);
-      chips.appendChild(b);
     }
+    renderDestinationChips();
 
-    // Modal Helpers
+    // 6. Modal Controls & Purpose Check
     function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
     function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+    function checkVisitorPurposeDocs() {
+      const purpose = document.getElementById('visPurpose').value;
+      const docNotice = document.getElementById('admissionDocsNotice');
+      if (purpose === "Admission Enquiry") {
+        docNotice.classList.remove('hidden');
+      } else {
+        docNotice.classList.add('hidden');
+      }
+    }
 
     function unlockApp(userTitle) {
       document.getElementById('roleGatewayScreen').classList.add('hidden');
       document.getElementById('currentUserBadge').innerText = userTitle;
       switchTab('explore');
       requestUserLocation(false);
-      loadLostFoundItems(); // Load permanent items from DB
+      loadLostFoundItems();
     }
 
     function logoutRole() {
@@ -541,7 +661,7 @@
       closeRouteCard();
     }
 
-    // 5. VISITOR FLOW (PERMANENT DB SYNC)
+    // 7. VISITOR FLOW
     let tempMob = "";
     async function requestVisitorOtp() {
       const name = document.getElementById('visName').value.trim();
@@ -597,7 +717,7 @@
       }
     }
 
-    // 6. STUDENT FLOW
+    // 8. STUDENT FLOW
     let tempAdm = "";
     async function requestStudentOtp() {
       const adm = document.getElementById('stdAdm').value.trim().toUpperCase();
@@ -643,7 +763,74 @@
       unlockApp(`🎓 Student: ${tempAdm || 'Adarsh'}`);
     }
 
-    // 7. LOST & FOUND (PERMANENT DB FETCH & POST)
+    // 9. COMPLAINTS (TAB FORM & DATABASE FETCH)
+    async function loadComplaintsFromDb() {
+      try {
+        const res = await fetch('/api/complaints');
+        const list = await res.json();
+        const container = document.getElementById('complaintsListContainer');
+        if (!container) return;
+
+        container.innerHTML = '';
+        if (list.length === 0) {
+          container.innerHTML = '<div class="p-4 bg-slate-900 border border-slate-800 rounded-2xl text-xs text-slate-500 text-center">Abhi koi complaint darj nahi hui hai.</div>';
+          return;
+        }
+
+        list.forEach(c => {
+          container.innerHTML += `
+            <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex flex-col sm:flex-row justify-between sm:items-center gap-2">
+              <div class="space-y-1">
+                <div class="flex items-center gap-2">
+                  <span class="text-xs font-mono font-bold text-amber-400">${c.ticket_id}</span>
+                  <span class="text-[10px] bg-slate-800 border border-slate-700 text-slate-300 px-2 py-0.5 rounded-full">${c.category}</span>
+                  <span class="text-[10px] text-slate-500">📍 ${c.location}</span>
+                </div>
+                <p class="text-xs text-slate-300 font-medium">${c.description}</p>
+                <div class="text-[10px] text-slate-500 font-mono">By: ${c.admission_no} • ${c.created_at}</div>
+              </div>
+              <span class="text-[10px] font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2.5 py-1 rounded-full self-start sm:self-center">
+                Pending ⏱️
+              </span>
+            </div>
+          `;
+        });
+      } catch (e) {}
+    }
+
+    async function submitMainTabGrievance() {
+      const cat = document.getElementById('mainCmpCategory').value;
+      const loc = document.getElementById('mainCmpLocation').value.trim();
+      const desc = document.getElementById('mainCmpDesc').value.trim();
+
+      if (!loc || !desc) {
+        return alert("Kripya Location aur Samasya ka vivaran dono bharein.");
+      }
+
+      try {
+        const res = await fetch('/submit-complaint', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            category: cat,
+            location: loc,
+            description: desc,
+            admission_no: activeUser || "Student / Guest"
+          })
+        });
+        const d = await res.json();
+        if (d.success) {
+          alert(`Grievance darj ho gayi! Ticket ID: ${d.ticket_id}`);
+          document.getElementById('mainCmpLocation').value = '';
+          document.getElementById('mainCmpDesc').value = '';
+          loadComplaintsFromDb();
+        }
+      } catch (e) {
+        alert("Error: Complaint submit nahi ho saki.");
+      }
+    }
+
+    // 10. LOST & FOUND
     async function loadLostFoundItems() {
       try {
         const res = await fetch('/api/lost-found');
@@ -695,7 +882,7 @@
       }
     }
 
-    // 8. ADMISSION PREDICTOR LOGIC
+    // 11. ADMISSION PREDICTOR LOGIC
     function runAdmissionPredictor() {
       const rank = parseInt(document.getElementById('predRank').value);
       const cat = document.getElementById('predCat').value;
@@ -738,25 +925,10 @@
       });
     }
 
-    // 9. GRIEVANCE SUBMISSION
-    async function submitGrievance() {
-      const desc = document.getElementById('cmpDesc').value.trim();
-      const loc = document.getElementById('cmpLoc').value.trim();
-      if (!desc) return alert("Vivaran bharein.");
-
-      try {
-        await fetch('/submit-complaint', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({ description: desc, location: loc, admission_no: activeUser || "User" })
-        });
-      } catch (e) {}
-
-      alert("Grievance ticket database me darj ho gayi!");
-      closeModal('complaintModal');
-    }
-
-    window.addEventListener('DOMContentLoaded', loadLostFoundItems);
+    window.addEventListener('DOMContentLoaded', () => {
+      loadLostFoundItems();
+      loadComplaintsFromDb();
+    });
   </script>
 </body>
 </html>
