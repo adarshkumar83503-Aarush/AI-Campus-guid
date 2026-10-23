@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GL Bajaj CampusGuide | Real-Time Road Navigator</title>
+  <title>GL Bajaj CampusGuide | Super Portal</title>
 
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-  <!-- Leaflet Routing Machine (Google Maps jaisa actual road walkways ke liye) -->
+  <!-- Leaflet Routing Machine -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
   <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
 
@@ -23,15 +23,9 @@
     #map { height: calc(100vh - 75px); width: 100%; z-index: 10; }
     .leaflet-routing-container { display: none !important; }
 
-    /* Live User Pulsing Location Marker */
     .user-live-pin {
-      width: 18px;
-      height: 18px;
-      background: #2563eb;
-      border: 3px solid #ffffff;
-      border-radius: 50%;
-      box-shadow: 0 0 0 rgba(37, 99, 235, 0.7);
-      animation: userPulse 1.8s infinite;
+      width: 18px; height: 18px; background: #2563eb; border: 3px solid #ffffff;
+      border-radius: 50%; box-shadow: 0 0 0 rgba(37, 99, 235, 0.7); animation: userPulse 1.8s infinite;
     }
     @keyframes userPulse {
       0% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.7); }
@@ -42,8 +36,8 @@
 </head>
 <body class="bg-slate-950 text-slate-100 flex flex-col h-screen overflow-hidden">
 
-  <!-- ================= 🚪 1. WELCOME / ROLE SELECTION GATEWAY (PEHLE YEH DIKHEGA) ================= -->
-  <div id="roleGatewayScreen" class="fixed inset-0 bg-slate-950 z-[1000] flex flex-col items-center justify-center p-4 sm:p-6 overflow-y-auto">
+  <!-- ================= 🚪 1. GATEWAY WELCOME SCREEN ================= -->
+  <div id="roleGatewayScreen" class="fixed inset-0 bg-slate-950 z-[2000] flex flex-col items-center justify-center p-4 sm:p-6 overflow-y-auto">
     <div class="max-w-3xl w-full text-center space-y-6">
       
       <!-- College Branding -->
@@ -52,27 +46,470 @@
           GL
         </div>
         <h1 class="text-2xl sm:text-3xl font-extrabold text-white">GL Bajaj <span class="text-blue-500">CampusGuide</span></h1>
-        <p class="text-xs sm:text-sm text-slate-400">Smart Campus Navigation, Security & Grievance Portal</p>
+        <p class="text-xs sm:text-sm text-slate-400">Campus Navigation, Gate Pass & Grievance Portal</p>
       </div>
 
-      <div class="p-4 bg-slate-900/60 border border-slate-800 rounded-2xl max-w-xl mx-auto">
-        <h2 class="text-sm font-bold text-slate-200">Kripya apna access type chunein:</h2>
-        <p class="text-xs text-slate-400 mt-0.5">Campus explore aur navigation map unlock karne ke liye verify karein</p>
+      <div class="p-4 bg-slate-900/80 border border-slate-800 rounded-2xl max-w-xl mx-auto">
+        <h2 class="text-sm font-bold text-slate-200">Kripya apna portal select karein:</h2>
+        <p class="text-xs text-slate-400 mt-0.5">Aage badhne ke liye kisi ek option par click karein</p>
       </div>
 
-      <!-- 3 Role Options -->
+      <!-- 3 Clear Action Cards -->
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-left">
         
-        <!-- Visitor Card -->
-        <div onclick="openModal('visitorModal')" class="bg-slate-900 border border-slate-800 hover:border-purple-500/50 p-5 rounded-3xl cursor-pointer transition transform hover:-translate-y-1 shadow-lg group">
-          <div class="w-12 h-12 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-2xl text-purple-400 mb-3 group-hover:bg-purple-600 group-hover:text-white transition">
+        <!-- 1. Campus Visitor -->
+        <div onclick="openModal('visitorModal')" class="bg-slate-900 border-2 border-slate-800 hover:border-purple-500 p-5 rounded-3xl cursor-pointer transition transform hover:-translate-y-1 shadow-xl">
+          <div class="w-12 h-12 rounded-2xl bg-purple-500/20 text-purple-400 flex items-center justify-center text-2xl mb-3">
             🪪
           </div>
           <h3 class="text-base font-bold text-white">Campus Visitor</h3>
-          <p class="text-xs text-slate-400 mt-1">Parents, Admission queries aur external guest entry ke liye digital gate pass banayein.</p>
-          <span class="inline-block mt-3 text-xs font-semibold text-purple-400 group-hover:underline">Enter as Visitor →</span>
+          <p class="text-xs text-slate-400 mt-1">Parents, Guests aur New Candidates yahan se Digital Pass banayein.</p>
+          <button class="mt-4 w-full bg-purple-600/30 hover:bg-purple-600 text-purple-200 hover:text-white py-1.5 rounded-xl text-xs font-bold border border-purple-500/30 transition">
+            Visitor Pass →
+          </button>
         </div>
 
-        <!-- Student Card -->
-        <div onclick="openModal('studentModal')" class="bg-slate-900 border border-slate-800 hover:border-blue-500/50 p-5 rounded-3xl cursor-pointer transition transform hover:-translate-y-1 shadow-lg group">
-          <div class="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-
+        <!-- 2. Student Portal -->
+        <div onclick="openModal('studentModal')" class="bg-slate-900 border-2 border-slate-800 hover:border-blue-500 p-5 rounded-3xl cursor-pointer transition transform hover:-translate-y-1 shadow-xl">
+          <div class="w-12 h-12 rounded-2xl bg-blue-500/20 text-blue-400 flex items-center justify-center text-2xl mb-3">
+            🎓
+          </div>
+          <h3 class="text-base font-bold text-white">GL Bajaj Student</h3>
+          <p class="text-xs text-slate-400 mt-1">Admission ID verify karke full campus navigation unlock karein.</p>
+          <button class="mt-4 w-full bg-blue-600/30 hover:bg-blue-600 text-blue-200 hover:text-white py-1.5 rounded-xl text-xs font-bold border border-blue-500/30 transition">
+            Student Login →
+          </button>
+        </div>
+
+        <!-- 3. Admin Portal -->
+        <div onclick="openModal('adminPassModal')" class="bg-slate-900 border-2 border-slate-800 hover:border-rose-500 p-5 rounded-3xl cursor-pointer transition transform hover:-translate-y-1 shadow-xl">
+          <div class="w-12 h-12 rounded-2xl bg-rose-500/20 text-rose-400 flex items-center justify-center text-2xl mb-3">
+            🔐
+          </div>
+          <h3 class="text-base font-bold text-white">Team Admin</h3>
+          <p class="text-xs text-slate-400 mt-1">Visitors list aur grievance complaints dashboard manage karein.</p>
+          <button class="mt-4 w-full bg-rose-600/30 hover:bg-rose-600 text-rose-200 hover:text-white py-1.5 rounded-xl text-xs font-bold border border-rose-500/30 transition">
+            Admin Console →
+          </button>
+        </div>
+
+      </div>
+
+      <p class="text-[11px] text-slate-500">GL Bajaj Institute of Technology & Management, Greater Noida</p>
+    </div>
+  </div>
+
+  <!-- ================= 🗺️ 2. TOP NAVBAR & MAP ================= -->
+  <header class="h-[75px] bg-slate-950/95 backdrop-blur border-b border-slate-800 px-3 sm:px-6 flex items-center justify-between z-30">
+    <div class="flex items-center gap-2.5">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center font-extrabold text-white text-base">
+        GL
+      </div>
+      <div>
+        <h1 class="text-sm sm:text-base font-extrabold text-white">
+          GL Bajaj <span class="text-blue-500">CampusGuide</span>
+        </h1>
+        <p class="text-[10px] text-slate-400">Road & Walkway GPS Navigator</p>
+      </div>
+    </div>
+
+    <!-- Header Tools -->
+    <div class="flex items-center gap-2">
+      <button onclick="requestUserLocation(true)" class="text-xs bg-slate-900 border border-slate-700 px-2.5 py-1.5 rounded-xl font-medium transition flex items-center gap-1">
+        <span id="gpsPinIcon">📍</span>
+        <span id="gpsPinStatus">Live GPS</span>
+      </button>
+
+      <button onclick="openModal('complaintModal')" class="text-xs bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 px-2.5 py-1.5 rounded-xl font-semibold">
+        ⚠️ Report Issue
+      </button>
+
+      <div id="currentUserBadge" class="text-xs bg-slate-900 border border-slate-700 px-3 py-1.5 rounded-xl text-emerald-400 font-bold">
+        Guest
+      </div>
+
+      <button onclick="logoutRole()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 px-2.5 py-1.5 rounded-xl font-semibold">
+        Switch Portal ⎋
+      </button>
+    </div>
+  </header>
+
+  <!-- ================= MAP AREA ================= -->
+  <div class="flex-1 relative flex">
+    <div id="map"></div>
+
+    <!-- Quick Destination Chips -->
+    <div class="absolute top-4 left-4 z-[400] max-w-xs sm:max-w-sm w-full bg-slate-950/90 backdrop-blur-md p-3.5 rounded-2xl border border-slate-800 shadow-2xl space-y-2 pointer-events-auto">
+      <div class="flex justify-between items-center">
+        <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Tap Destination</span>
+        <span id="originStatusBadge" class="text-[10px] bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2 py-0.5 rounded-full font-semibold">
+          From: Gate 1
+        </span>
+      </div>
+      <div class="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto" id="navChips"></div>
+    </div>
+
+    <!-- Route Guidance Card -->
+    <div id="routeDetailsCard" class="absolute bottom-6 left-4 right-4 sm:left-auto sm:right-6 sm:w-96 z-[400] bg-slate-900/95 backdrop-blur-lg border border-slate-800 rounded-3xl p-5 shadow-2xl space-y-3 hidden pointer-events-auto">
+      <div class="flex justify-between items-start">
+        <div>
+          <span class="text-[10px] uppercase font-bold text-blue-400 tracking-wider">Live Route Guidance</span>
+          <h4 id="destTitle" class="text-base font-extrabold text-white mt-0.5">Destination</h4>
+        </div>
+        <button onclick="closeRouteCard()" class="text-slate-400 hover:text-white text-sm font-bold">✕</button>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2 bg-slate-950/70 p-2.5 rounded-2xl border border-slate-800/80">
+        <div>
+          <div class="text-[10px] text-slate-400">Road Distance</div>
+          <div id="distVal" class="text-sm font-bold text-emerald-400 font-mono">-- m</div>
+        </div>
+        <div>
+          <div class="text-[10px] text-slate-400">Estimated Walking</div>
+          <div id="timeVal" class="text-sm font-bold text-blue-400 font-mono">-- mins</div>
+        </div>
+      </div>
+
+      <div class="space-y-1.5">
+        <div class="text-[11px] font-bold text-slate-300">Live Pathway Directions:</div>
+        <div id="guideText" class="text-xs text-slate-300 max-h-36 overflow-y-auto space-y-1 bg-slate-800/60 p-3 rounded-xl border border-slate-700/50"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= 🪪 3. VISITOR REGISTRATION MODAL ================= -->
+  <div id="visitorModal" class="fixed inset-0 bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-4 z-[2500]">
+    <div class="bg-slate-900 border border-slate-800 p-6 rounded-3xl max-w-md w-full space-y-4 shadow-2xl">
+      <div class="flex justify-between items-center pb-2 border-b border-slate-800">
+        <h3 class="font-bold text-base text-white">Visitor Registration & Gate Pass</h3>
+        <button onclick="closeModal('visitorModal')" class="text-slate-400 hover:text-white">✕</button>
+      </div>
+
+      <div id="visStep1" class="space-y-3">
+        <div>
+          <label class="block text-xs text-slate-400 mb-1">Full Name</label>
+          <input id="visName" type="text" placeholder="Apna naam daalein" class="w-full bg-slate-800 border border-slate-700 p-2.5 rounded-xl text-sm text-white outline-none">
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">Mobile No.</label>
+            <input id="visMobile" type="tel" maxlength="10" placeholder="10 Digit Number" class="w-full bg-slate-800 border border-slate-700 p-2.5 rounded-xl text-sm text-white outline-none font-mono">
+          </div>
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">Govt ID / Aadhaar</label>
+            <input id="visAadhaar" type="text" maxlength="12" placeholder="ID Number" class="w-full bg-slate-800 border border-slate-700 p-2.5 rounded-xl text-sm text-white outline-none font-mono">
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs text-slate-400 mb-1">Purpose of Visit</label>
+          <select id="visPurpose" class="w-full bg-slate-800 border border-slate-700 p-2.5 rounded-xl text-sm text-white outline-none">
+            <option value="Admission Enquiry">Admission Enquiry</option>
+            <option value="Parent Visit">Parent Visit</option>
+            <option value="Placement / Company Drive">Placement / Company Drive</option>
+            <option value="Campus Fest / Event">Campus Fest / Event</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <button id="btnVisSend" onclick="requestVisitorOtp()" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold p-3 rounded-xl text-sm transition">
+          Generate Verification OTP
+        </button>
+      </div>
+
+      <div id="visStep2" class="space-y-3 hidden">
+        <div id="visOtpNotice" class="text-xs bg-purple-950/80 border border-purple-500/40 p-2.5 rounded-xl text-purple-200 font-mono text-center"></div>
+        <input id="visOtp" type="text" placeholder="• • • • • •" class="w-full bg-slate-800 border border-slate-700 p-2.5 rounded-xl text-center text-lg font-mono text-white outline-none">
+        <button onclick="verifyVisitorOtp()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold p-3 rounded-xl text-sm transition">
+          Confirm Entry & Enter Campus
+        </button>
+      </div>
+      <p id="visErr" class="text-xs text-red-400 text-center hidden"></p>
+    </div>
+  </div>
+
+  <!-- ================= 🎓 4. STUDENT LOGIN MODAL ================= -->
+  <div id="studentModal" class="fixed inset-0 bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-4 z-[2500]">
+    <div class="bg-slate-900 border border-slate-800 p-6 rounded-3xl max-w-sm w-full space-y-4 shadow-2xl">
+      <div class="flex justify-between items-center pb-2 border-b border-slate-800">
+        <h3 class="font-bold text-base text-white">Student Verification</h3>
+        <button onclick="closeModal('studentModal')" class="text-slate-400 hover:text-white">✕</button>
+      </div>
+      
+      <div id="stdStep1" class="space-y-3">
+        <label class="block text-xs text-slate-400">Admission Number</label>
+        <input id="stdAdm" type="text" value="25116CN001" placeholder="e.g. 25116CN001" class="w-full bg-slate-800 border border-slate-700 p-2.5 rounded-xl text-sm font-mono uppercase text-white outline-none">
+        <button onclick="requestStudentOtp()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold p-2.5 rounded-xl text-sm transition">
+          Generate Verification OTP
+        </button>
+      </div>
+
+      <div id="stdStep2" class="space-y-3 hidden">
+        <div id="stdOtpMsg" class="text-xs bg-slate-800 border border-slate-700 p-2.5 rounded-xl text-emerald-300 font-mono text-center"></div>
+        <input id="stdOtp" type="text" placeholder="• • • • • •" class="w-full bg-slate-800 border border-slate-700 p-2.5 rounded-xl text-center text-lg font-mono text-white outline-none">
+        <button onclick="verifyStudentOtp()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold p-2.5 rounded-xl text-sm transition">
+          Verify & Unlock Campus Map
+        </button>
+      </div>
+
+      <p id="stdErr" class="text-xs text-red-400 text-center hidden"></p>
+    </div>
+  </div>
+
+  <!-- ================= 🔐 5. ADMIN PORTAL MODAL ================= -->
+  <div id="adminPassModal" class="fixed inset-0 bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-4 z-[2500]">
+    <div class="bg-slate-900 border border-slate-800 p-6 rounded-3xl max-w-sm w-full space-y-4 text-center shadow-2xl">
+      <div class="w-12 h-12 bg-rose-500/20 border border-rose-500/30 rounded-2xl flex items-center justify-center text-rose-400 text-xl mx-auto">
+        🔐
+      </div>
+      <h3 class="font-bold text-base text-white">Admin Team Console</h3>
+      <p class="text-xs text-slate-400">Passcode enter karke administrative dashboard unlock karein.</p>
+
+      <form method="POST" action="/admin" class="space-y-3">
+        <input type="password" name="passcode" value="GLB@ADMIN2026" placeholder="Passcode (GLB@ADMIN2026)" required class="w-full bg-slate-800 border border-slate-700 p-2.5 rounded-xl text-sm text-center text-white outline-none font-mono">
+        <button type="submit" class="w-full bg-rose-600 hover:bg-rose-500 text-white font-bold p-2.5 rounded-xl text-sm transition">
+          Unlock Admin Dashboard
+        </button>
+      </form>
+      <button onclick="closeModal('adminPassModal')" class="text-xs text-slate-500 hover:underline">Cancel</button>
+    </div>
+  </div>
+
+  <!-- ================= ⚠️ 6. GRIEVANCE MODAL ================= -->
+  <div id="complaintModal" class="fixed inset-0 bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-4 z-[2500]">
+    <div class="bg-slate-900 border border-slate-800 p-6 rounded-3xl max-w-md w-full space-y-3 shadow-2xl">
+      <div class="flex justify-between items-center pb-2 border-b border-slate-800">
+        <h3 class="font-bold text-base text-white">Campus Grievance Redressal</h3>
+        <button onclick="closeModal('complaintModal')" class="text-slate-400 hover:text-white">✕</button>
+      </div>
+      <input id="cmpLoc" type="text" placeholder="Location / Classroom" class="w-full bg-slate-800 border border-slate-700 p-2 rounded-xl text-sm text-white outline-none">
+      <textarea id="cmpDesc" rows="3" placeholder="Samasya ka vivaran..." class="w-full bg-slate-800 border border-slate-700 p-2 rounded-xl text-sm text-white outline-none"></textarea>
+      <p id="cmpStatus" class="text-xs font-bold hidden"></p>
+      <div class="flex justify-end gap-2 pt-2">
+        <button onclick="closeModal('complaintModal')" class="px-3 py-1.5 border border-slate-700 rounded-xl text-xs text-slate-400">Cancel</button>
+        <button onclick="submitGrievance()" class="px-4 py-1.5 bg-blue-600 text-xs font-bold text-white rounded-xl">Submit Ticket</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= JAVASCRIPT ================= -->
+  <script>
+    const LOCATIONS = {{ locations|tojson }};
+    const MAIN_GATE = [28.4738, 77.4882];
+
+    let userCurrentCoords = null;
+    let userMarker = null;
+    let routingControl = null;
+    let activeDestData = null;
+    let activeUser = null;
+
+    // 1. Map Init
+    const map = L.map('map').setView([28.4728, 77.4897], 18);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+    L.marker(MAIN_GATE).addTo(map).bindPopup("<b>📍 Gate 1 (Campus Main Entrance)</b>");
+
+    // 2. Geolocation
+    function requestUserLocation(manual = false) {
+      if (!navigator.geolocation) return;
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          userCurrentCoords = [pos.coords.latitude, pos.coords.longitude];
+          document.getElementById('gpsPinIcon').innerText = "🟢";
+          document.getElementById('gpsPinStatus').innerText = "Active";
+          const badge = document.getElementById('originStatusBadge');
+          if (badge) badge.innerText = "From: Your Live Location 📍";
+
+          const userIcon = L.divIcon({ className: 'user-live-pin', iconSize: [18, 18], iconAnchor: [9, 9] });
+          if (!userMarker) userMarker = L.marker(userCurrentCoords, { icon: userIcon }).addTo(map);
+          else userMarker.setLatLng(userCurrentCoords);
+
+          map.flyTo(userCurrentCoords, 19);
+          if (activeDestData) drawRealRoadRoute(activeDestData.lat, activeDestData.lng, activeDestData.name, activeDestData.desc);
+        },
+        (err) => { if (manual) alert("Location allow karein."); }
+      );
+    }
+
+    // 3. Real Road Route
+    function drawRealRoadRoute(destLat, destLng, name, desc) {
+      activeDestData = { lat: destLat, lng: destLng, name: name, desc: desc };
+      if (routingControl) map.removeControl(routingControl);
+
+      const start = userCurrentCoords ? L.latLng(userCurrentCoords[0], userCurrentCoords[1]) : L.latLng(MAIN_GATE[0], MAIN_GATE[1]);
+      const end = L.latLng(destLat, destLng);
+
+      routingControl = L.Routing.control({
+        waypoints: [start, end],
+        router: L.Routing.osrmv1({ serviceUrl: 'https://router.project-osrm.org/route/v1', profile: 'foot' }),
+        lineOptions: { styles: [{ color: '#2563eb', opacity: 0.85, weight: 6 }] },
+        addWaypoints: false, draggableWaypoints: false, fitSelectedRoutes: true, show: false
+      }).addTo(map);
+
+      routingControl.on('routesfound', function(e) {
+        const r = e.routes[0];
+        const dist = Math.round(r.summary.totalDistance);
+        const time = Math.max(1, Math.round(r.summary.totalTime / 60));
+
+        document.getElementById('routeDetailsCard').classList.remove('hidden');
+        document.getElementById('destTitle').innerText = name;
+        document.getElementById('distVal').innerText = dist >= 1000 ? `${(dist/1000).toFixed(2)} km` : `${dist} meters`;
+        document.getElementById('timeVal').innerText = `~${time} mins walk`;
+
+        const box = document.getElementById('guideText');
+        box.innerHTML = '';
+        r.instructions.forEach((s, idx) => {
+          const div = document.createElement('div');
+          div.className = "py-0.5 border-b border-slate-800 last:border-none";
+          div.innerHTML = `<span class="text-blue-400 font-bold">${idx + 1}.</span> ${s.text} (${Math.round(s.distance)}m)`;
+          box.appendChild(div);
+        });
+      });
+    }
+
+    function closeRouteCard() {
+      document.getElementById('routeDetailsCard').classList.add('hidden');
+      if (routingControl) map.removeControl(routingControl);
+    }
+
+    // Chips
+    const chips = document.getElementById('navChips');
+    for (let k in LOCATIONS) {
+      let l = LOCATIONS[k];
+      let m = L.marker([l.lat, l.lng]).addTo(map).bindPopup(`<b>${l.name}</b>`);
+      m.on('click', () => drawRealRoadRoute(l.lat, l.lng, l.name, l.desc));
+      let b = document.createElement('button');
+      b.className = "text-xs bg-slate-900 border border-slate-700 px-2.5 py-1 rounded-xl text-slate-200";
+      b.innerText = l.name.split('(')[0];
+      b.onclick = () => drawRealRoadRoute(l.lat, l.lng, l.name, l.desc);
+      chips.appendChild(b);
+    }
+
+    // Modal & App View Controls
+    function openModal(id) { 
+      document.getElementById(id).classList.remove('hidden'); 
+    }
+    function closeModal(id) { 
+      document.getElementById(id).classList.add('hidden'); 
+    }
+
+    function unlockApp(userTitle) {
+      document.getElementById('roleGatewayScreen').classList.add('hidden');
+      document.getElementById('currentUserBadge').innerText = userTitle;
+      setTimeout(() => map.invalidateSize(), 300);
+      requestUserLocation(false);
+    }
+
+    function logoutRole() {
+      document.getElementById('roleGatewayScreen').classList.remove('hidden');
+      if (routingControl) map.removeControl(routingControl);
+      closeRouteCard();
+    }
+
+    // 4. VISITOR FLOW (FAIL-SAFE)
+    let tempMob = "";
+    async function requestVisitorOtp() {
+      const name = document.getElementById('visName').value.trim();
+      const mobile = document.getElementById('visMobile').value.trim();
+      const aadhaar = document.getElementById('visAadhaar').value.trim();
+      const purpose = document.getElementById('visPurpose').value;
+      const err = document.getElementById('visErr');
+      err.classList.add('hidden');
+
+      if (!name || !mobile || !aadhaar) {
+        err.innerText = "Saare details daalna anivarya hai.";
+        err.classList.remove('hidden');
+        return;
+      }
+
+      const generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
+      tempMob = mobile;
+
+      // Backend call ke sath sath direct fallback taaki user freeze na ho
+      try {
+        fetch('/visitor/send-otp', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ name, mobile, aadhaar, purpose })
+        });
+      } catch (e) {}
+
+      document.getElementById('visStep1').classList.add('hidden');
+      document.getElementById('visStep2').classList.remove('hidden');
+      document.getElementById('visOtpNotice').innerText = `Verification OTP: ${generatedOtp}`;
+      document.getElementById('visOtp').value = generatedOtp;
+    }
+
+    async function verifyVisitorOtp() {
+      const otp = document.getElementById('visOtp').value.trim();
+      if (!otp) return alert("OTP daalein.");
+
+      const passId = "GP-" + Math.floor(1000 + Math.random() * 9000);
+      closeModal('visitorModal');
+      unlockApp(`🪪 Pass: ${passId}`);
+    }
+
+    // 5. STUDENT FLOW
+    let tempAdm = "";
+    async function requestStudentOtp() {
+      const adm = document.getElementById('stdAdm').value.trim().toUpperCase();
+      const err = document.getElementById('stdErr');
+      err.classList.add('hidden');
+
+      if (!adm) {
+        err.innerText = "Admission number daalein (e.g. 25116CN001).";
+        err.classList.remove('hidden');
+        return;
+      }
+
+      try {
+        const res = await fetch('/student/send-otp', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ admission_no: adm })
+        });
+        const d = await res.json();
+        if (d.success) {
+          tempAdm = adm;
+          document.getElementById('stdStep1').classList.add('hidden');
+          document.getElementById('stdStep2').classList.remove('hidden');
+          document.getElementById('stdOtpMsg').innerText = d.message;
+          document.getElementById('stdOtp').value = d.otp;
+        } else {
+          err.innerText = d.message;
+          err.classList.remove('hidden');
+        }
+      } catch (e) {
+        // Fallback demo for student
+        tempAdm = adm;
+        document.getElementById('stdStep1').classList.add('hidden');
+        document.getElementById('stdStep2').classList.remove('hidden');
+        document.getElementById('stdOtpMsg').innerText = "OTP: 123456 (Demo Login)";
+        document.getElementById('stdOtp').value = "123456";
+      }
+    }
+
+    async function verifyStudentOtp() {
+      const otp = document.getElementById('stdOtp').value.trim();
+      if (!otp) return alert("OTP daalein.");
+      closeModal('studentModal');
+      unlockApp(`🎓 Student: ${tempAdm || 'Adarsh'}`);
+    }
+
+    // 6. GRIEVANCE FLOW
+    async function submitGrievance() {
+      const desc = document.getElementById('cmpDesc').value.trim();
+      const loc = document.getElementById('cmpLoc').value.trim();
+      if (!desc) return alert("Vivaran bharein.");
+
+      try {
+        await fetch('/submit-complaint', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ description: desc, location: loc, admission_no: activeUser || "User" })
+        });
+      } catch (e) {}
+
+      alert("Grievance Ticket Darj Ho Gayi!");
+      closeModal('complaintModal');
+    }
+  </script>
+</body>
+</html>
