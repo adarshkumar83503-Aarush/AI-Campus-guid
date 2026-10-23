@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>GL Bajaj CampusGuide | Super Portal</title>
 
   <!-- Tailwind CSS -->
@@ -20,7 +20,10 @@
 
   <style>
     body { font-family: 'Plus Jakarta Sans', sans-serif; }
-    #map { height: calc(100vh - 75px); width: 100%; z-index: 10; }
+    #map { height: calc(100vh - 120px); width: 100%; z-index: 10; }
+    @media (min-width: 640px) {
+      #map { height: calc(100vh - 75px); }
+    }
     .leaflet-routing-container { display: none !important; }
 
     .user-live-pin {
@@ -32,193 +35,203 @@
       70% { box-shadow: 0 0 0 14px rgba(37, 99, 235, 0); }
       100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0); }
     }
+    /* Smooth horizontal scroll without scrollbar */
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   </style>
 </head>
 <body class="bg-slate-950 text-slate-100 flex flex-col h-screen overflow-hidden">
 
   <!-- ================= 🚪 1. GATEWAY WELCOME SCREEN ================= -->
   <div id="roleGatewayScreen" class="fixed inset-0 bg-slate-950 z-[2000] flex flex-col items-center justify-center p-4 sm:p-6 overflow-y-auto">
-    <div class="max-w-3xl w-full text-center space-y-6">
+    <div class="max-w-3xl w-full text-center space-y-5 my-auto">
       
-      <div class="space-y-2">
-        <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center font-black text-white text-2xl mx-auto shadow-xl shadow-blue-500/20">
+      <div class="space-y-1.5">
+        <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center font-black text-white text-xl sm:text-2xl mx-auto shadow-xl shadow-blue-500/20">
           GL
         </div>
-        <h1 class="text-2xl sm:text-3xl font-extrabold text-white">GL Bajaj <span class="text-blue-500">CampusGuide</span></h1>
-        <p class="text-xs sm:text-sm text-slate-400">Campus Navigation, Gate Pass & Student Hub</p>
+        <h1 class="text-xl sm:text-3xl font-extrabold text-white">GL Bajaj <span class="text-blue-500">CampusGuide</span></h1>
+        <p class="text-[11px] sm:text-sm text-slate-400">Campus Navigation, Gate Pass & Student Hub</p>
       </div>
 
-      <div class="p-4 bg-slate-900/80 border border-slate-800 rounded-2xl max-w-xl mx-auto">
-        <h2 class="text-sm font-bold text-slate-200">Kripya apna access mode select karein:</h2>
-        <p class="text-xs text-slate-400 mt-0.5">Aage badhne ke liye kisi ek option par click karein</p>
+      <div class="p-3.5 bg-slate-900/80 border border-slate-800 rounded-2xl max-w-xl mx-auto">
+        <h2 class="text-xs sm:text-sm font-bold text-slate-200">Kripya apna access mode select karein:</h2>
+        <p class="text-[11px] text-slate-400 mt-0.5">Aage badhne ke liye kisi ek option par click karein</p>
       </div>
 
       <!-- 3 Role Options -->
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-left">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-left">
         
         <!-- Visitor -->
-        <div onclick="openModal('visitorModal')" class="bg-slate-900 border-2 border-slate-800 hover:border-purple-500 p-5 rounded-3xl cursor-pointer transition transform hover:-translate-y-1 shadow-xl">
-          <div class="w-12 h-12 rounded-2xl bg-purple-500/20 text-purple-400 flex items-center justify-center text-2xl mb-3">
+        <div onclick="openModal('visitorModal')" class="bg-slate-900 border-2 border-slate-800 hover:border-purple-500 p-4 sm:p-5 rounded-2xl sm:rounded-3xl cursor-pointer transition transform active:scale-95 shadow-xl">
+          <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-purple-500/20 text-purple-400 flex items-center justify-center text-xl sm:text-2xl mb-2 sm:mb-3">
             🪪
           </div>
-          <h3 class="text-base font-bold text-white">Campus Visitor</h3>
-          <p class="text-xs text-slate-400 mt-1">Parents, Guests aur External candidates ke liye digital gate pass banayein.</p>
-          <button class="mt-4 w-full bg-purple-600/30 hover:bg-purple-600 text-purple-200 hover:text-white py-1.5 rounded-xl text-xs font-bold border border-purple-500/30 transition">
+          <h3 class="text-sm sm:text-base font-bold text-white">Campus Visitor</h3>
+          <p class="text-[11px] sm:text-xs text-slate-400 mt-1">Parents, Guests aur External candidates ke liye digital pass banayein.</p>
+          <button class="mt-3 w-full bg-purple-600/30 hover:bg-purple-600 text-purple-200 hover:text-white py-1.5 rounded-xl text-xs font-bold border border-purple-500/30 transition">
             Visitor Pass →
           </button>
         </div>
 
         <!-- Student -->
-        <div onclick="openModal('studentModal')" class="bg-slate-900 border-2 border-slate-800 hover:border-blue-500 p-5 rounded-3xl cursor-pointer transition transform hover:-translate-y-1 shadow-xl">
-          <div class="w-12 h-12 rounded-2xl bg-blue-500/20 text-blue-400 flex items-center justify-center text-2xl mb-3">
+        <div onclick="openModal('studentModal')" class="bg-slate-900 border-2 border-slate-800 hover:border-blue-500 p-4 sm:p-5 rounded-2xl sm:rounded-3xl cursor-pointer transition transform active:scale-95 shadow-xl">
+          <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-blue-500/20 text-blue-400 flex items-center justify-center text-xl sm:text-2xl mb-2 sm:mb-3">
             🎓
           </div>
-          <h3 class="text-base font-bold text-white">GL Bajaj Student</h3>
-          <p class="text-xs text-slate-400 mt-1">Admission ID verify karke complete campus facilities unlock karein.</p>
-          <button class="mt-4 w-full bg-blue-600/30 hover:bg-blue-600 text-blue-200 hover:text-white py-1.5 rounded-xl text-xs font-bold border border-blue-500/30 transition">
+          <h3 class="text-sm sm:text-base font-bold text-white">GL Bajaj Student</h3>
+          <p class="text-[11px] sm:text-xs text-slate-400 mt-1">Admission ID verify karke complete campus facilities unlock karein.</p>
+          <button class="mt-3 w-full bg-blue-600/30 hover:bg-blue-600 text-blue-200 hover:text-white py-1.5 rounded-xl text-xs font-bold border border-blue-500/30 transition">
             Student Login →
           </button>
         </div>
 
         <!-- Admin -->
-        <div onclick="openModal('adminPassModal')" class="bg-slate-900 border-2 border-slate-800 hover:border-rose-500 p-5 rounded-3xl cursor-pointer transition transform hover:-translate-y-1 shadow-xl">
-          <div class="w-12 h-12 rounded-2xl bg-rose-500/20 text-rose-400 flex items-center justify-center text-2xl mb-3">
+        <div onclick="openModal('adminPassModal')" class="bg-slate-900 border-2 border-slate-800 hover:border-rose-500 p-4 sm:p-5 rounded-2xl sm:rounded-3xl cursor-pointer transition transform active:scale-95 shadow-xl">
+          <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-rose-500/20 text-rose-400 flex items-center justify-center text-xl sm:text-2xl mb-2 sm:mb-3">
             🔐
           </div>
-          <h3 class="text-base font-bold text-white">Team Admin</h3>
-          <p class="text-xs text-slate-400 mt-1">Permanent database logs, visitors registry aur complaints dashboard.</p>
-          <button class="mt-4 w-full bg-rose-600/30 hover:bg-rose-600 text-rose-200 hover:text-white py-1.5 rounded-xl text-xs font-bold border border-rose-500/30 transition">
+          <h3 class="text-sm sm:text-base font-bold text-white">Team Admin</h3>
+          <p class="text-[11px] sm:text-xs text-slate-400 mt-1">Permanent database logs, visitors registry aur complaints dashboard.</p>
+          <button class="mt-3 w-full bg-rose-600/30 hover:bg-rose-600 text-rose-200 hover:text-white py-1.5 rounded-xl text-xs font-bold border border-rose-500/30 transition">
             Admin Console →
           </button>
         </div>
 
       </div>
 
-      <p class="text-[11px] text-slate-500">GL Bajaj Institute of Technology & Management, Greater Noida</p>
+      <p class="text-[10px] sm:text-[11px] text-slate-500">GL Bajaj Institute of Technology & Management, Greater Noida</p>
     </div>
   </div>
 
-  <!-- ================= 🗺️ 2. TOP NAVBAR ================= -->
-  <header class="h-[75px] bg-slate-950/95 backdrop-blur border-b border-slate-800 px-3 sm:px-6 flex items-center justify-between z-30">
-    <div class="flex items-center gap-2.5">
-      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center font-extrabold text-white text-base">
-        GL
+  <!-- ================= 🗺️ 2. TOP NAVBAR & TABS (FULLY MOBILE RESPONSIVE) ================= -->
+  <header class="bg-slate-950/95 backdrop-blur border-b border-slate-800 px-3 sm:px-6 py-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 z-30">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center font-extrabold text-white text-xs sm:text-sm">
+          GL
+        </div>
+        <div>
+          <h1 class="text-xs sm:text-sm font-extrabold text-white leading-tight">
+            GL Bajaj <span class="text-blue-500">CampusGuide</span>
+          </h1>
+          <p class="text-[9px] text-slate-400">Road GPS & Student Hub</p>
+        </div>
       </div>
-      <div>
-        <h1 class="text-sm sm:text-base font-extrabold text-white">
-          GL Bajaj <span class="text-blue-500">CampusGuide</span>
-        </h1>
-        <p class="text-[10px] text-slate-400">Road GPS & Student Hub</p>
+
+      <!-- Right Header Actions on Mobile -->
+      <div class="flex items-center gap-1.5">
+        <div id="currentUserBadge" class="text-[10px] sm:text-xs bg-slate-900 border border-slate-700 px-2 py-1 rounded-lg text-emerald-400 font-bold whitespace-nowrap">
+          Guest
+        </div>
+        <button onclick="logoutRole()" class="text-[10px] sm:text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 px-2 py-1 rounded-lg font-semibold transition">
+          Switch ⎋
+        </button>
       </div>
     </div>
 
-    <!-- 5 Tabs Navigation -->
-    <nav class="flex items-center gap-1 bg-slate-900 border border-slate-800 p-1 rounded-2xl overflow-x-auto max-w-[55vw] sm:max-w-none">
-      <button onclick="switchTab('explore')" id="tab-btn-explore" class="tab-btn px-3 py-1.5 text-xs font-semibold rounded-xl bg-blue-600 text-white transition whitespace-nowrap">
+    <!-- 5 Horizontal Scrollable Tabs for Mobile & Desktop -->
+    <nav class="flex items-center gap-1 bg-slate-900 border border-slate-800 p-1 rounded-xl overflow-x-auto no-scrollbar w-full sm:w-auto">
+      <button onclick="switchTab('explore')" id="tab-btn-explore" class="tab-btn px-2.5 py-1 text-[11px] sm:text-xs font-semibold rounded-lg bg-blue-600 text-white transition whitespace-nowrap flex-shrink-0">
         🧭 Explore Map
       </button>
-      <button onclick="switchTab('counselling')" id="tab-btn-counselling" class="tab-btn px-3 py-1.5 text-xs font-semibold rounded-xl text-slate-400 hover:text-white transition whitespace-nowrap">
+      <button onclick="switchTab('counselling')" id="tab-btn-counselling" class="tab-btn px-2.5 py-1 text-[11px] sm:text-xs font-semibold rounded-lg text-slate-400 hover:text-white transition whitespace-nowrap flex-shrink-0">
         🎓 Predictor
       </button>
-      <button onclick="switchTab('complaints')" id="tab-btn-complaints" class="tab-btn px-3 py-1.5 text-xs font-semibold rounded-xl text-slate-400 hover:text-white transition whitespace-nowrap">
+      <button onclick="switchTab('complaints')" id="tab-btn-complaints" class="tab-btn px-2.5 py-1 text-[11px] sm:text-xs font-semibold rounded-lg text-slate-400 hover:text-white transition whitespace-nowrap flex-shrink-0">
         ⚠️ Complaints
       </button>
-      <button onclick="switchTab('lostfound')" id="tab-btn-lostfound" class="tab-btn px-3 py-1.5 text-xs font-semibold rounded-xl text-slate-400 hover:text-white transition whitespace-nowrap">
+      <button onclick="switchTab('lostfound')" id="tab-btn-lostfound" class="tab-btn px-2.5 py-1 text-[11px] sm:text-xs font-semibold rounded-lg text-slate-400 hover:text-white transition whitespace-nowrap flex-shrink-0">
         🔍 Lost & Found
       </button>
-      <button onclick="switchTab('clubs')" id="tab-btn-clubs" class="tab-btn px-3 py-1.5 text-xs font-semibold rounded-xl text-slate-400 hover:text-white transition whitespace-nowrap">
+      <button onclick="switchTab('clubs')" id="tab-btn-clubs" class="tab-btn px-2.5 py-1 text-[11px] sm:text-xs font-semibold rounded-lg text-slate-400 hover:text-white transition whitespace-nowrap flex-shrink-0">
         🎪 Clubs & Fests
       </button>
     </nav>
-
-    <!-- Header Actions -->
-    <div class="flex items-center gap-2">
-      <div id="currentUserBadge" class="text-xs bg-slate-900 border border-slate-700 px-3 py-1.5 rounded-xl text-emerald-400 font-bold whitespace-nowrap">
-        Guest
-      </div>
-
-      <button onclick="logoutRole()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 px-2.5 py-1.5 rounded-xl font-semibold transition">
-        Switch ⎋
-      </button>
-    </div>
   </header>
 
   <!-- ================= 3. TAB BODIES ================= -->
   <main class="flex-1 relative overflow-y-auto">
 
     <!-- TAB 1: EXPLORE MAP -->
-    <div id="tab-explore" class="tab-content relative w-full h-[calc(100vh-75px)]">
+    <div id="tab-explore" class="tab-content relative w-full h-full">
       <div id="map"></div>
 
-      <!-- Quick Destinations & MANUAL SEARCH BAR -->
-      <div class="absolute top-4 left-4 z-[400] max-w-xs sm:max-w-sm w-full bg-slate-950/90 backdrop-blur-md p-3.5 rounded-2xl border border-slate-800 shadow-2xl space-y-2.5 pointer-events-auto">
+      <!-- Quick Destinations & SEARCH BOX WITH MINIMIZE TOGGLE -->
+      <div id="searchContainerBox" class="absolute top-3 left-3 right-3 sm:right-auto sm:max-w-sm z-[400] bg-slate-950/95 backdrop-blur-md p-3 rounded-2xl border border-slate-800 shadow-2xl space-y-2 pointer-events-auto transition-all">
+        
         <div class="flex justify-between items-center">
-          <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Search & Navigate</span>
-          <span id="originStatusBadge" class="text-[10px] bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2 py-0.5 rounded-full font-semibold">
-            From: Gate 1
-          </span>
+          <div class="flex items-center gap-1.5">
+            <span class="text-[11px] font-bold text-slate-300 uppercase tracking-wider">Search & Navigate</span>
+            <span id="originStatusBadge" class="text-[9px] bg-blue-500/10 text-blue-400 border border-blue-500/20 px-1.5 py-0.5 rounded font-semibold">
+              Gate 1
+            </span>
+          </div>
+
+          <!-- 🔽 Search Box Minimize / Expand Button -->
+          <button onclick="toggleSearchBoxMinimize()" id="btnToggleSearchBox" title="Minimize / Expand Search" 
+                  class="text-slate-300 hover:text-white text-xs font-bold bg-slate-800 hover:bg-slate-700 px-2 py-0.5 rounded-lg border border-slate-700">
+            —
+          </button>
         </div>
 
-        <!-- 🔍 Manual Search Input -->
-        <div class="relative">
+        <!-- Minimizable Content (Search input + chips) -->
+        <div id="searchBoxContent" class="space-y-2">
           <input id="destinationSearchInput" oninput="filterDestinations()" type="text" placeholder="🔍 Search Block, Library, Audi..." 
-                 class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 outline-none focus:border-blue-500">
+                 class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs text-white placeholder-slate-500 outline-none focus:border-blue-500">
+
+          <div class="flex flex-wrap gap-1 max-h-28 sm:max-h-36 overflow-y-auto" id="navChips"></div>
         </div>
 
-        <!-- Filterable Chips -->
-        <div class="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto" id="navChips"></div>
       </div>
 
       <!-- Route Guidance Card (With Minimize & Close Controls) -->
-      <div id="routeDetailsCard" class="absolute bottom-6 left-4 right-4 sm:left-auto sm:right-6 sm:w-96 z-[400] bg-slate-900/95 backdrop-blur-lg border border-slate-800 rounded-3xl p-5 shadow-2xl space-y-3 hidden pointer-events-auto transition-all">
+      <div id="routeDetailsCard" class="absolute bottom-4 left-3 right-3 sm:left-auto sm:right-4 sm:w-96 z-[400] bg-slate-900/95 backdrop-blur-lg border border-slate-800 rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 shadow-2xl space-y-2.5 hidden pointer-events-auto transition-all">
         <div class="flex justify-between items-start">
           <div>
-            <span class="text-[10px] uppercase font-bold text-blue-400 tracking-wider">Live Route Guidance</span>
-            <h4 id="destTitle" class="text-base font-extrabold text-white mt-0.5">Destination</h4>
+            <span class="text-[9px] uppercase font-bold text-blue-400 tracking-wider">Live Route Guidance</span>
+            <h4 id="destTitle" class="text-sm sm:text-base font-extrabold text-white mt-0.5">Destination</h4>
           </div>
-          <div class="flex items-center gap-2">
-            <!-- 🔽 Minimize Button -->
-            <button onclick="toggleRouteCardMinimize()" title="Minimize / Expand" id="btnMinimizeRoute" class="text-slate-400 hover:text-white text-xs font-bold bg-slate-800 hover:bg-slate-700 px-2 py-1 rounded-lg border border-slate-700">
+          <div class="flex items-center gap-1.5">
+            <button onclick="toggleRouteCardMinimize()" title="Minimize / Expand" id="btnMinimizeRoute" class="text-slate-400 hover:text-white text-xs font-bold bg-slate-800 hover:bg-slate-700 px-2 py-0.5 rounded-lg border border-slate-700">
               —
             </button>
-            <button onclick="closeRouteCard()" title="Close" class="text-slate-400 hover:text-white text-sm font-bold bg-slate-800 hover:bg-slate-700 px-2 py-0.5 rounded-lg border border-slate-700">✕</button>
+            <button onclick="closeRouteCard()" title="Close" class="text-slate-400 hover:text-white text-xs font-bold bg-slate-800 hover:bg-slate-700 px-2 py-0.5 rounded-lg border border-slate-700">✕</button>
           </div>
         </div>
 
-        <!-- Distance & Time Overview -->
-        <div class="grid grid-cols-2 gap-2 bg-slate-950/70 p-2.5 rounded-2xl border border-slate-800/80">
+        <div class="grid grid-cols-2 gap-2 bg-slate-950/70 p-2 rounded-xl border border-slate-800/80">
           <div>
-            <div class="text-[10px] text-slate-400">Road Distance</div>
-            <div id="distVal" class="text-sm font-bold text-emerald-400 font-mono">-- m</div>
+            <div class="text-[9px] text-slate-400">Road Distance</div>
+            <div id="distVal" class="text-xs sm:text-sm font-bold text-emerald-400 font-mono">-- m</div>
           </div>
           <div>
-            <div class="text-[10px] text-slate-400">Estimated Walking</div>
-            <div id="timeVal" class="text-sm font-bold text-blue-400 font-mono">-- mins</div>
+            <div class="text-[9px] text-slate-400">Estimated Walking</div>
+            <div id="timeVal" class="text-xs sm:text-sm font-bold text-blue-400 font-mono">-- mins</div>
           </div>
         </div>
 
-        <!-- Minimizable Direction Steps Section -->
         <div id="routeDetailsBody" class="space-y-1.5">
-          <div class="text-[11px] font-bold text-slate-300">Live Pathway Directions:</div>
-          <div id="guideText" class="text-xs text-slate-300 max-h-36 overflow-y-auto space-y-1 bg-slate-800/60 p-3 rounded-xl border border-slate-700/50"></div>
+          <div class="text-[10px] font-bold text-slate-300">Live Directions:</div>
+          <div id="guideText" class="text-[11px] text-slate-300 max-h-28 sm:max-h-36 overflow-y-auto space-y-1 bg-slate-800/60 p-2 sm:p-3 rounded-xl border border-slate-700/50"></div>
         </div>
       </div>
     </div>
 
     <!-- TAB 2: PREDICTOR -->
-    <div id="tab-counselling" class="tab-content hidden max-w-4xl mx-auto p-4 sm:p-8 space-y-6">
-      <div class="bg-gradient-to-r from-blue-950/50 to-indigo-950/50 border border-blue-900/50 p-6 sm:p-8 rounded-3xl space-y-4 shadow-xl">
-        <h3 class="text-xl sm:text-2xl font-black text-white">GL Bajaj Cutoff Predictor 🎯</h3>
+    <div id="tab-counselling" class="tab-content hidden max-w-4xl mx-auto p-4 sm:p-8 space-y-4 sm:space-y-6">
+      <div class="bg-gradient-to-r from-blue-950/50 to-indigo-950/50 border border-blue-900/50 p-5 sm:p-8 rounded-2xl sm:rounded-3xl space-y-3 sm:space-y-4 shadow-xl">
+        <h3 class="text-lg sm:text-2xl font-black text-white">GL Bajaj Cutoff Predictor 🎯</h3>
         <p class="text-xs sm:text-sm text-slate-300">JEE Mains CRL Rank aur Category select karke branch probability check karein.</p>
 
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-2">
           <div>
             <label class="block text-[11px] font-bold text-slate-400 mb-1">JEE CRL Rank</label>
-            <input id="predRank" type="number" placeholder="e.g. 140000" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl text-sm text-white outline-none focus:border-blue-500 font-mono">
+            <input id="predRank" type="number" placeholder="e.g. 140000" class="w-full bg-slate-900 border border-slate-700 p-2.5 rounded-xl text-xs sm:text-sm text-white outline-none focus:border-blue-500 font-mono">
           </div>
           <div>
             <label class="block text-[11px] font-bold text-slate-400 mb-1">Category</label>
-            <select id="predCat" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl text-sm text-white outline-none focus:border-blue-500">
+            <select id="predCat" class="w-full bg-slate-900 border border-slate-700 p-2.5 rounded-xl text-xs sm:text-sm text-white outline-none focus:border-blue-500">
               <option value="General">General / OPEN</option>
               <option value="EWS">GEN-EWS</option>
               <option value="OBC">OBC-NCL</option>
@@ -226,7 +239,7 @@
             </select>
           </div>
           <div class="flex items-end">
-            <button onclick="runAdmissionPredictor()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold p-3 rounded-xl text-sm transition shadow-lg shadow-blue-600/30">
+            <button onclick="runAdmissionPredictor()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold p-2.5 rounded-xl text-xs sm:text-sm transition shadow-lg shadow-blue-600/30">
               Calculate Eligibility →
             </button>
           </div>
@@ -235,29 +248,29 @@
 
       <div id="predictorResult" class="hidden space-y-3">
         <h4 id="predSummary" class="text-xs font-bold text-slate-300"></h4>
-        <div id="predCards" class="grid grid-cols-1 sm:grid-cols-3 gap-3"></div>
+        <div id="predCards" class="grid grid-cols-1 sm:grid-cols-3 gap-2.5"></div>
       </div>
     </div>
 
     <!-- TAB 3: COMPLAINTS & GRIEVANCE REDRESSAL -->
-    <div id="tab-complaints" class="tab-content hidden max-w-5xl mx-auto p-4 sm:p-8 space-y-6">
-      <div class="bg-slate-900 border border-slate-800 p-6 sm:p-8 rounded-3xl space-y-4 shadow-xl">
+    <div id="tab-complaints" class="tab-content hidden max-w-5xl mx-auto p-4 sm:p-8 space-y-4 sm:space-y-6">
+      <div class="bg-slate-900 border border-slate-800 p-5 sm:p-8 rounded-2xl sm:rounded-3xl space-y-3 sm:space-y-4 shadow-xl">
         <div class="flex justify-between items-start">
           <div>
-            <h3 class="text-xl font-bold text-white flex items-center gap-2">
-              <span>⚠️</span> Campus Grievance Redressal Portal
+            <h3 class="text-base sm:text-xl font-bold text-white flex items-center gap-1.5">
+              <span>⚠️</span> Grievance Redressal Portal
             </h3>
-            <p class="text-xs text-slate-400 mt-1">Classroom, Labs, Water, WiFi ya Sanitation related issues yahan darj karein.</p>
+            <p class="text-[11px] sm:text-xs text-slate-400 mt-0.5">Classroom, Labs, Water, WiFi ya Sanitation issues darj karein.</p>
           </div>
-          <span class="text-[10px] bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2.5 py-1 rounded-full font-bold">
-            24-48h Resolution
+          <span class="text-[9px] sm:text-[10px] bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded-full font-bold">
+            24-48h
           </span>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
           <div>
             <label class="block text-[11px] font-bold text-slate-400 mb-1">Issue Category</label>
-            <select id="mainCmpCategory" class="w-full bg-slate-800 border border-slate-700 p-2.5 rounded-xl text-sm text-white outline-none focus:border-amber-500">
+            <select id="mainCmpCategory" class="w-full bg-slate-800 border border-slate-700 p-2.5 rounded-xl text-xs text-white outline-none focus:border-amber-500">
               <option value="Infrastructure / Electricity">Infrastructure / Electricity</option>
               <option value="WiFi & Lab PCs">WiFi & Lab PCs</option>
               <option value="Sanitation & Cleanliness">Sanitation & Cleanliness</option>
@@ -267,22 +280,22 @@
           </div>
           <div>
             <label class="block text-[11px] font-bold text-slate-400 mb-1">Campus Location</label>
-            <input id="mainCmpLocation" type="text" placeholder="e.g. AB-2 3rd Floor Lab 6" class="w-full bg-slate-800 border border-slate-700 p-2.5 rounded-xl text-sm text-white outline-none focus:border-amber-500">
+            <input id="mainCmpLocation" type="text" placeholder="e.g. AB-2 3rd Floor Lab 6" class="w-full bg-slate-800 border border-slate-700 p-2.5 rounded-xl text-xs text-white outline-none focus:border-amber-500">
           </div>
         </div>
 
         <div>
           <label class="block text-[11px] font-bold text-slate-400 mb-1">Samasya ka Vivaran (Description)</label>
-          <textarea id="mainCmpDesc" rows="3" placeholder="Samasya ke baare me vistaar se batayein..." class="w-full bg-slate-800 border border-slate-700 p-3 rounded-xl text-sm text-white outline-none focus:border-amber-500"></textarea>
+          <textarea id="mainCmpDesc" rows="3" placeholder="Samasya ke baare me vistaar se batayein..." class="w-full bg-slate-800 border border-slate-700 p-2.5 rounded-xl text-xs text-white outline-none focus:border-amber-500"></textarea>
         </div>
 
-        <button onclick="submitMainTabGrievance()" class="w-full sm:w-auto bg-amber-600 hover:bg-amber-500 text-white font-bold px-6 py-2.5 rounded-xl text-sm transition shadow-lg shadow-amber-600/20">
+        <button onclick="submitMainTabGrievance()" class="w-full sm:w-auto bg-amber-600 hover:bg-amber-500 text-white font-bold px-5 py-2.5 rounded-xl text-xs sm:text-sm transition shadow-lg shadow-amber-600/20">
           Submit Grievance Ticket →
         </button>
       </div>
 
-      <div class="space-y-3">
-        <h4 class="text-sm font-bold text-white flex items-center gap-2">
+      <div class="space-y-2.5">
+        <h4 class="text-xs sm:text-sm font-bold text-white flex items-center gap-1.5">
           <span>📋</span> Recent Campus Grievances (Live Database)
         </h4>
         <div id="complaintsListContainer" class="space-y-2"></div>
@@ -290,86 +303,86 @@
     </div>
 
     <!-- TAB 4: LOST & FOUND -->
-    <div id="tab-lostfound" class="tab-content hidden max-w-5xl mx-auto p-4 sm:p-8 space-y-6">
-      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-slate-900 border border-slate-800 p-6 rounded-3xl">
+    <div id="tab-lostfound" class="tab-content hidden max-w-5xl mx-auto p-4 sm:p-8 space-y-4 sm:space-y-6">
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2.5 bg-slate-900 border border-slate-800 p-4 sm:p-6 rounded-2xl sm:rounded-3xl">
         <div>
-          <h3 class="text-xl font-bold text-white flex items-center gap-2">
-            <span>🔍</span> Campus Lost & Found Registry
+          <h3 class="text-base sm:text-xl font-bold text-white flex items-center gap-1.5">
+            <span>🔍</span> Lost & Found Registry
           </h3>
-          <p class="text-xs text-slate-400 mt-0.5">Database me permanently saved lost/found items</p>
+          <p class="text-[11px] sm:text-xs text-slate-400">Database me permanently saved lost/found items</p>
         </div>
-        <button onclick="openModal('lostPostModal')" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition shadow-lg shadow-blue-600/20">
+        <button onclick="openModal('lostPostModal')" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-4 py-2 rounded-xl transition shadow-lg shadow-blue-600/20">
           + Report Item
         </button>
       </div>
 
-      <div id="lostFoundGrid" class="grid grid-cols-1 sm:grid-cols-3 gap-4"></div>
+      <div id="lostFoundGrid" class="grid grid-cols-1 sm:grid-cols-3 gap-3"></div>
     </div>
 
     <!-- TAB 5: CLUBS -->
-    <div id="tab-clubs" class="tab-content hidden max-w-5xl mx-auto p-4 sm:p-8 space-y-6">
-      <div class="bg-slate-900 border border-slate-800 p-6 rounded-3xl">
-        <h3 class="text-xl font-bold text-white flex items-center gap-2">
+    <div id="tab-clubs" class="tab-content hidden max-w-5xl mx-auto p-4 sm:p-8 space-y-4 sm:space-y-6">
+      <div class="bg-slate-900 border border-slate-800 p-4 sm:p-6 rounded-2xl sm:rounded-3xl">
+        <h3 class="text-base sm:text-xl font-bold text-white flex items-center gap-1.5">
           <span>🎪</span> Student Societies & Campus Fests
         </h3>
-        <p class="text-xs text-slate-400 mt-0.5">GL Bajaj active technical chapters & cultural societies.</p>
+        <p class="text-[11px] sm:text-xs text-slate-400">GL Bajaj active technical chapters & cultural societies.</p>
       </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div class="bg-slate-900/90 border border-slate-800 p-5 rounded-2xl space-y-2">
-          <span class="text-[10px] bg-blue-500/10 text-blue-400 border border-blue-500/20 font-bold px-2 py-0.5 rounded-full uppercase">Technical Chapter</span>
-          <h4 class="text-base font-bold text-white">Rotaract & Coding Club</h4>
-          <p class="text-xs text-slate-400">Hackathons, programming contests aur technical workshops organize karta hai.</p>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+        <div class="bg-slate-900/90 border border-slate-800 p-4 rounded-2xl space-y-1.5">
+          <span class="text-[9px] bg-blue-500/10 text-blue-400 border border-blue-500/20 font-bold px-2 py-0.5 rounded-full uppercase">Technical Chapter</span>
+          <h4 class="text-sm sm:text-base font-bold text-white">Rotaract & Coding Club</h4>
+          <p class="text-[11px] sm:text-xs text-slate-400">Hackathons, programming contests aur technical workshops organize karta hai.</p>
         </div>
 
-        <div class="bg-slate-900/90 border border-slate-800 p-5 rounded-2xl space-y-2">
-          <span class="text-[10px] bg-purple-500/10 text-purple-400 border border-purple-500/20 font-bold px-2 py-0.5 rounded-full uppercase">Cultural Society</span>
-          <h4 class="text-base font-bold text-white">Dramatics & Music Society</h4>
-          <p class="text-xs text-slate-400">Nukkad Natak, rock bands aur inter-college cultural events.</p>
+        <div class="bg-slate-900/90 border border-slate-800 p-4 rounded-2xl space-y-1.5">
+          <span class="text-[9px] bg-purple-500/10 text-purple-400 border border-purple-500/20 font-bold px-2 py-0.5 rounded-full uppercase">Cultural Society</span>
+          <h4 class="text-sm sm:text-base font-bold text-white">Dramatics & Music Society</h4>
+          <p class="text-[11px] sm:text-xs text-slate-400">Nukkad Natak, rock bands aur inter-college cultural events.</p>
         </div>
 
-        <div class="bg-slate-900/90 border border-slate-800 p-5 rounded-2xl space-y-2">
-          <span class="text-[10px] bg-amber-500/10 text-amber-400 border border-amber-500/20 font-bold px-2 py-0.5 rounded-full uppercase">Annual Fest</span>
-          <h4 class="text-base font-bold text-white">Technovate & Aaghaz Fest</h4>
-          <p class="text-xs text-slate-400">Celebrity nights aur multi-college grand competitions.</p>
+        <div class="bg-slate-900/90 border border-slate-800 p-4 rounded-2xl space-y-1.5">
+          <span class="text-[9px] bg-amber-500/10 text-amber-400 border border-amber-500/20 font-bold px-2 py-0.5 rounded-full uppercase">Annual Fest</span>
+          <h4 class="text-sm sm:text-base font-bold text-white">Technovate & Aaghaz Fest</h4>
+          <p class="text-[11px] sm:text-xs text-slate-400">Celebrity nights aur multi-college grand competitions.</p>
         </div>
 
-        <div class="bg-slate-900/90 border border-slate-800 p-5 rounded-2xl space-y-2">
-          <span class="text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold px-2 py-0.5 rounded-full uppercase">Innovation</span>
-          <h4 class="text-base font-bold text-white">E-Cell (Entrepreneurship Cell)</h4>
-          <p class="text-xs text-slate-400">Startup pitch decks aur incubation opportunities.</p>
+        <div class="bg-slate-900/90 border border-slate-800 p-4 rounded-2xl space-y-1.5">
+          <span class="text-[9px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold px-2 py-0.5 rounded-full uppercase">Innovation</span>
+          <h4 class="text-sm sm:text-base font-bold text-white">E-Cell (Entrepreneurship Cell)</h4>
+          <p class="text-[11px] sm:text-xs text-slate-400">Startup pitch decks aur incubation opportunities.</p>
         </div>
       </div>
     </div>
 
   </main>
 
-  <!-- ================= 🪪 VISITOR MODAL (WITH REQUIRED ADMISSION DOCUMENTS) ================= -->
-  <div id="visitorModal" class="fixed inset-0 bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-4 z-[2500]">
-    <div class="bg-slate-900 border border-slate-800 p-6 rounded-3xl max-w-md w-full space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
+  <!-- ================= 🪪 VISITOR MODAL ================= -->
+  <div id="visitorModal" class="fixed inset-0 bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-3 sm:p-4 z-[2500]">
+    <div class="bg-slate-900 border border-slate-800 p-5 sm:p-6 rounded-2xl sm:rounded-3xl max-w-md w-full space-y-3.5 shadow-2xl max-h-[92vh] overflow-y-auto">
       <div class="flex justify-between items-center pb-2 border-b border-slate-800">
-        <h3 class="font-bold text-base text-white">Visitor Registration & Gate Pass</h3>
+        <h3 class="font-bold text-sm sm:text-base text-white">Visitor Registration & Gate Pass</h3>
         <button onclick="closeModal('visitorModal')" class="text-slate-400 hover:text-white">✕</button>
       </div>
 
       <div id="visStep1" class="space-y-3">
         <div>
-          <label class="block text-xs text-slate-400 mb-1">Full Name</label>
-          <input id="visName" type="text" placeholder="Apna naam daalein" class="w-full bg-slate-800 border border-slate-700 p-2.5 rounded-xl text-sm text-white outline-none">
+          <label class="block text-[11px] text-slate-400 mb-1">Full Name</label>
+          <input id="visName" type="text" placeholder="Apna naam daalein" class="w-full bg-slate-800 border border-slate-700 p-2.5 rounded-xl text-xs sm:text-sm text-white outline-none">
         </div>
         <div class="grid grid-cols-2 gap-2">
           <div>
-            <label class="block text-xs text-slate-400 mb-1">Mobile No.</label>
-            <input id="visMobile" type="tel" maxlength="10" placeholder="10 Digit Number" class="w-full bg-slate-800 border border-slate-700 p-2.5 rounded-xl text-sm text-white outline-none font-mono">
+            <label class="block text-[11px] text-slate-400 mb-1">Mobile No.</label>
+            <input id="visMobile" type="tel" maxlength="10" placeholder="10 Digit Number" class="w-full bg-slate-800 border border-slate-700 p-2.5 rounded-xl text-xs sm:text-sm text-white outline-none font-mono">
           </div>
           <div>
-            <label class="block text-xs text-slate-400 mb-1">Govt ID / Aadhaar</label>
-            <input id="visAadhaar" type="text" maxlength="12" placeholder="ID Number" class="w-full bg-slate-800 border border-slate-700 p-2.5 rounded-xl text-sm text-white outline-none font-mono">
+            <label class="block text-[11px] text-slate-400 mb-1">Govt ID / Aadhaar</label>
+            <input id="visAadhaar" type="text" maxlength="12" placeholder="ID Number" class="w-full bg-slate-800 border border-slate-700 p-2.5 rounded-xl text-xs sm:text-sm text-white outline-none font-mono">
           </div>
         </div>
         <div>
-          <label class="block text-xs text-slate-400 mb-1">Purpose of Visit</label>
-          <select id="visPurpose" onchange="checkVisitorPurposeDocs()" class="w-full bg-slate-800 border border-slate-700 p-2.5 rounded-xl text-sm text-white outline-none focus:border-purple-500">
+          <label class="block text-[11px] text-slate-400 mb-1">Purpose of Visit</label>
+          <select id="visPurpose" onchange="checkVisitorPurposeDocs()" class="w-full bg-slate-800 border border-slate-700 p-2.5 rounded-xl text-xs sm:text-sm text-white outline-none focus:border-purple-500">
             <option value="Admission Enquiry">Admission Enquiry</option>
             <option value="Parent Visit">Parent Visit</option>
             <option value="Placement / Company Drive">Placement / Company Drive</option>
@@ -378,22 +391,20 @@
           </select>
         </div>
 
-        <!-- 📄 ADMISSION REQUIRED DOCUMENTS NOTICE (DEFAULT VISIBLE FOR ADMISSION) -->
-        <div id="admissionDocsNotice" class="bg-purple-950/40 border border-purple-500/30 p-3.5 rounded-2xl space-y-1.5 text-left">
+        <div id="admissionDocsNotice" class="bg-purple-950/40 border border-purple-500/30 p-3 rounded-xl space-y-1 text-left">
           <div class="flex items-center gap-1.5 text-xs font-bold text-purple-300">
             <span>📑</span> Required Documents for Admission:
           </div>
-          <ul class="text-[11px] text-slate-300 list-disc list-inside space-y-1">
-            <li>10th & 12th Original Marksheets & Photocopies</li>
+          <ul class="text-[10px] sm:text-[11px] text-slate-300 list-disc list-inside space-y-0.5">
+            <li>10th & 12th Original Marksheets & Copies</li>
             <li>JEE Mains / CUET Score Card & Admit Card</li>
             <li>Aadhaar Card (Student & Parents)</li>
-            <li>Transfer Certificate (TC) & Migration Certificate</li>
+            <li>Transfer Certificate (TC) & Migration</li>
             <li>5 Passport Size Recent Photographs</li>
-            <li>Category / Income Certificate (If applicable)</li>
           </ul>
         </div>
 
-        <button onclick="requestVisitorOtp()" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold p-3 rounded-xl text-sm transition">
+        <button onclick="requestVisitorOtp()" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold p-2.5 sm:p-3 rounded-xl text-xs sm:text-sm transition">
           Generate Verification OTP
         </button>
       </div>
@@ -401,7 +412,7 @@
       <div id="visStep2" class="space-y-3 hidden">
         <div id="visOtpNotice" class="text-xs bg-purple-950/80 border border-purple-500/40 p-2.5 rounded-xl text-purple-200 font-mono text-center"></div>
         <input id="visOtp" type="text" placeholder="• • • • • •" class="w-full bg-slate-800 border border-slate-700 p-2.5 rounded-xl text-center text-lg font-mono text-white outline-none">
-        <button onclick="verifyVisitorOtp()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold p-3 rounded-xl text-sm transition">
+        <button onclick="verifyVisitorOtp()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold p-2.5 sm:p-3 rounded-xl text-xs sm:text-sm transition">
           Confirm Entry & Unlock Portal
         </button>
       </div>
@@ -410,17 +421,17 @@
   </div>
 
   <!-- ================= 🎓 STUDENT MODAL ================= -->
-  <div id="studentModal" class="fixed inset-0 bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-4 z-[2500]">
-    <div class="bg-slate-900 border border-slate-800 p-6 rounded-3xl max-w-sm w-full space-y-4 shadow-2xl">
+  <div id="studentModal" class="fixed inset-0 bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-3 sm:p-4 z-[2500]">
+    <div class="bg-slate-900 border border-slate-800 p-5 sm:p-6 rounded-2xl sm:rounded-3xl max-w-sm w-full space-y-3.5 shadow-2xl">
       <div class="flex justify-between items-center pb-2 border-b border-slate-800">
-        <h3 class="font-bold text-base text-white">Student Verification</h3>
+        <h3 class="font-bold text-sm sm:text-base text-white">Student Verification</h3>
         <button onclick="closeModal('studentModal')" class="text-slate-400 hover:text-white">✕</button>
       </div>
       
       <div id="stdStep1" class="space-y-3">
-        <label class="block text-xs text-slate-400">Admission Number</label>
-        <input id="stdAdm" type="text" value="25116CN001" placeholder="e.g. 25116CN001" class="w-full bg-slate-800 border border-slate-700 p-2.5 rounded-xl text-sm font-mono uppercase text-white outline-none focus:border-blue-500">
-        <button onclick="requestStudentOtp()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold p-2.5 rounded-xl text-sm transition">
+        <label class="block text-[11px] text-slate-400">Admission Number</label>
+        <input id="stdAdm" type="text" value="25116CN001" placeholder="e.g. 25116CN001" class="w-full bg-slate-800 border border-slate-700 p-2.5 rounded-xl text-xs sm:text-sm font-mono uppercase text-white outline-none focus:border-blue-500">
+        <button onclick="requestStudentOtp()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold p-2.5 rounded-xl text-xs sm:text-sm transition">
           Generate Verification OTP
         </button>
       </div>
@@ -428,7 +439,7 @@
       <div id="stdStep2" class="space-y-3 hidden">
         <div id="stdOtpMsg" class="text-xs bg-slate-800 border border-slate-700 p-2.5 rounded-xl text-emerald-300 font-mono text-center"></div>
         <input id="stdOtp" type="text" placeholder="• • • • • •" class="w-full bg-slate-800 border border-slate-700 p-2.5 rounded-xl text-center text-lg font-mono text-white outline-none">
-        <button onclick="verifyStudentOtp()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold p-2.5 rounded-xl text-sm transition">
+        <button onclick="verifyStudentOtp()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold p-2.5 rounded-xl text-xs sm:text-sm transition">
           Verify & Unlock Campus Map
         </button>
       </div>
@@ -438,17 +449,24 @@
   </div>
 
   <!-- ================= 🔐 ADMIN MODAL ================= -->
-  <div id="adminPassModal" class="fixed inset-0 bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-4 z-[2500]">
-    <div class="bg-slate-900 border border-slate-800 p-6 rounded-3xl max-w-sm w-full space-y-4 text-center shadow-2xl">
+  <div id="adminPassModal" class="fixed inset-0 bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-3 sm:p-4 z-[2500]">
+    <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl sm:rounded-3xl max-w-sm w-full space-y-4 text-center shadow-2xl">
       <div class="w-12 h-12 bg-rose-500/20 border border-rose-500/30 rounded-2xl flex items-center justify-center text-rose-400 text-xl mx-auto">
         🔐
       </div>
       <h3 class="font-bold text-base text-white">Admin Team Console</h3>
-      <p class="text-xs text-slate-400">Passcode enter karke administrative dashboard unlock karein.</p>
+      <p class="text-xs text-slate-400">Core team credentials daalkar admin console open karein.</p>
 
-      <form method="POST" action="/admin" class="space-y-3">
-        <input type="password" name="passcode" value="GLB@ADMIN2026" placeholder="Passcode (GLB@ADMIN2026)" required class="w-full bg-slate-800 border border-slate-700 p-2.5 rounded-xl text-sm text-center text-white outline-none font-mono">
-        <button type="submit" class="w-full bg-rose-600 hover:bg-rose-500 text-white font-bold p-2.5 rounded-xl text-sm transition">
+      <form method="POST" action="/admin" class="space-y-3 text-left">
+        <div>
+          <label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">Admission ID</label>
+          <input type="text" name="admin_id" value="25116CN001" placeholder="25116CN001" required class="w-full bg-slate-800 border border-slate-700 p-2.5 rounded-xl text-xs text-white font-mono uppercase outline-none">
+        </div>
+        <div>
+          <label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">Passcode</label>
+          <input type="password" name="passcode" value="GLB@ADMIN2026" placeholder="Passcode" required class="w-full bg-slate-800 border border-slate-700 p-2.5 rounded-xl text-xs text-white outline-none font-mono">
+        </div>
+        <button type="submit" class="w-full bg-rose-600 hover:bg-rose-500 text-white font-bold p-2.5 rounded-xl text-xs sm:text-sm transition">
           Unlock Admin Dashboard
         </button>
       </form>
@@ -457,22 +475,22 @@
   </div>
 
   <!-- ================= LOST & FOUND POST MODAL ================= -->
-  <div id="lostPostModal" class="fixed inset-0 bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-4 z-[2500]">
-    <div class="bg-slate-900 border border-slate-800 p-6 rounded-3xl max-w-md w-full space-y-3 shadow-2xl">
+  <div id="lostPostModal" class="fixed inset-0 bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-3 sm:p-4 z-[2500]">
+    <div class="bg-slate-900 border border-slate-800 p-5 sm:p-6 rounded-2xl sm:rounded-3xl max-w-md w-full space-y-3 shadow-2xl">
       <div class="flex justify-between items-center pb-2 border-b border-slate-800">
-        <h3 class="font-bold text-base text-white">Post Lost / Found Item</h3>
+        <h3 class="font-bold text-sm sm:text-base text-white">Post Lost / Found Item</h3>
         <button onclick="closeModal('lostPostModal')" class="text-slate-400 hover:text-white">✕</button>
       </div>
-      <select id="lfType" class="w-full bg-slate-800 border border-slate-700 p-2 rounded-xl text-sm text-white outline-none">
+      <select id="lfType" class="w-full bg-slate-800 border border-slate-700 p-2 rounded-xl text-xs text-white outline-none">
         <option value="Lost">Lost (Khoya Hai)</option>
         <option value="Found">Found (Mila Hai)</option>
       </select>
-      <input id="lfTitle" type="text" placeholder="Item Name (e.g. Blue Titan Watch)" class="w-full bg-slate-800 border border-slate-700 p-2 rounded-xl text-sm text-white outline-none">
-      <input id="lfLoc" type="text" placeholder="Location (e.g. AB-1 Room 204)" class="w-full bg-slate-800 border border-slate-700 p-2 rounded-xl text-sm text-white outline-none">
-      <input id="lfContact" type="text" placeholder="Contact Mobile" class="w-full bg-slate-800 border border-slate-700 p-2 rounded-xl text-sm text-white outline-none">
-      <div class="flex justify-end gap-2 pt-2">
+      <input id="lfTitle" type="text" placeholder="Item Name (e.g. Blue Titan Watch)" class="w-full bg-slate-800 border border-slate-700 p-2 rounded-xl text-xs text-white outline-none">
+      <input id="lfLoc" type="text" placeholder="Location (e.g. AB-1 Room 204)" class="w-full bg-slate-800 border border-slate-700 p-2 rounded-xl text-xs text-white outline-none">
+      <input id="lfContact" type="text" placeholder="Contact Mobile" class="w-full bg-slate-800 border border-slate-700 p-2 rounded-xl text-xs text-white outline-none">
+      <div class="flex justify-end gap-2 pt-1">
         <button onclick="closeModal('lostPostModal')" class="px-3 py-1.5 border border-slate-700 rounded-xl text-xs text-slate-400">Cancel</button>
-        <button onclick="addLostItem()" class="px-4 py-1.5 bg-blue-600 text-xs font-bold text-white rounded-xl">Save to Database</button>
+        <button onclick="addLostItem()" class="px-4 py-1.5 bg-blue-600 text-xs font-bold text-white rounded-xl">Save</button>
       </div>
     </div>
   </div>
@@ -488,6 +506,7 @@
     let activeDestData = null;
     let activeUser = null;
     let isRouteMinimized = false;
+    let isSearchMinimized = false;
 
     // 1. Tab Switcher
     function switchTab(tabId) {
@@ -506,7 +525,7 @@
       }
 
       if (tabId === 'explore') {
-        setTimeout(() => map.invalidateSize(), 200);
+        setTimeout(() => map.invalidateSize(), 250);
       } else if (tabId === 'complaints') {
         loadComplaintsFromDb();
       }
@@ -524,7 +543,7 @@
         (pos) => {
           userCurrentCoords = [pos.coords.latitude, pos.coords.longitude];
           const badge = document.getElementById('originStatusBadge');
-          if (badge) badge.innerText = "From: Your Live Location 📍";
+          if (badge) badge.innerText = "GPS 📍";
 
           const userIcon = L.divIcon({ className: 'user-live-pin', iconSize: [18, 18], iconAnchor: [9, 9] });
           if (!userMarker) userMarker = L.marker(userCurrentCoords, { icon: userIcon }).addTo(map);
@@ -548,7 +567,7 @@
       routingControl = L.Routing.control({
         waypoints: [start, end],
         router: L.Routing.osrmv1({ serviceUrl: 'https://router.project-osrm.org/route/v1', profile: 'foot' }),
-        lineOptions: { styles: [{ color: '#2563eb', opacity: 0.85, weight: 6 }] },
+        lineOptions: { styles: [{ color: '#2563eb', opacity: 0.85, weight: 5 }] },
         addWaypoints: false, draggableWaypoints: false, fitSelectedRoutes: true, show: false
       }).addTo(map);
 
@@ -559,8 +578,8 @@
 
         document.getElementById('routeDetailsCard').classList.remove('hidden');
         document.getElementById('destTitle').innerText = name;
-        document.getElementById('distVal').innerText = dist >= 1000 ? `${(dist/1000).toFixed(2)} km` : `${dist} meters`;
-        document.getElementById('timeVal').innerText = `~${time} mins walk`;
+        document.getElementById('distVal').innerText = dist >= 1000 ? `${(dist/1000).toFixed(2)} km` : `${dist} m`;
+        document.getElementById('timeVal').innerText = `~${time} mins`;
 
         const box = document.getElementById('guideText');
         box.innerHTML = '';
@@ -571,10 +590,14 @@
           box.appendChild(div);
         });
 
-        // Reset minimize state to expanded whenever a new route is drawn
         isRouteMinimized = false;
         document.getElementById('routeDetailsBody').classList.remove('hidden');
         document.getElementById('btnMinimizeRoute').innerText = "—";
+
+        // Auto-minimize search box on mobile to give space to map
+        if (window.innerWidth < 640 && !isSearchMinimized) {
+          toggleSearchBoxMinimize();
+        }
       });
     }
 
@@ -592,12 +615,26 @@
       }
     }
 
+    function toggleSearchBoxMinimize() {
+      const content = document.getElementById('searchBoxContent');
+      const btn = document.getElementById('btnToggleSearchBox');
+      if (isSearchMinimized) {
+        content.classList.remove('hidden');
+        btn.innerText = "—";
+        isSearchMinimized = false;
+      } else {
+        content.classList.add('hidden');
+        btn.innerText = "▢";
+        isSearchMinimized = true;
+      }
+    }
+
     function closeRouteCard() {
       document.getElementById('routeDetailsCard').classList.add('hidden');
       if (routingControl) map.removeControl(routingControl);
     }
 
-    // 5. Render Chips & Manual Search Filter
+    // 5. Render Destination Chips & Search Filter
     function renderDestinationChips(filterText = "") {
       const chips = document.getElementById('navChips');
       chips.innerHTML = '';
@@ -609,14 +646,14 @@
         }
 
         let b = document.createElement('button');
-        b.className = "text-xs bg-slate-900 hover:bg-slate-800 border border-slate-700 px-2.5 py-1 rounded-xl text-slate-200 transition";
+        b.className = "text-[11px] bg-slate-900 hover:bg-slate-800 border border-slate-700 px-2 py-0.5 rounded-lg text-slate-200 transition whitespace-nowrap";
         b.innerText = l.name.split('(')[0];
         b.onclick = () => drawRealRoadRoute(l.lat, l.lng, l.name, l.desc);
         chips.appendChild(b);
       }
 
       if (chips.children.length === 0) {
-        chips.innerHTML = '<span class="text-[11px] text-slate-500 py-1">Koi location nahi mili</span>';
+        chips.innerHTML = '<span class="text-[10px] text-slate-500 py-0.5">Koi location nahi mili</span>';
       }
     }
 
@@ -625,7 +662,6 @@
       renderDestinationChips(val);
     }
 
-    // Map markers
     for (let k in LOCATIONS) {
       let l = LOCATIONS[k];
       let m = L.marker([l.lat, l.lng]).addTo(map).bindPopup(`<b>${l.name}</b>`);
@@ -633,18 +669,15 @@
     }
     renderDestinationChips();
 
-    // 6. Modal Controls & Purpose Check
+    // 6. Modal Controls
     function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
     function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
     function checkVisitorPurposeDocs() {
       const purpose = document.getElementById('visPurpose').value;
       const docNotice = document.getElementById('admissionDocsNotice');
-      if (purpose === "Admission Enquiry") {
-        docNotice.classList.remove('hidden');
-      } else {
-        docNotice.classList.add('hidden');
-      }
+      if (purpose === "Admission Enquiry") docNotice.classList.remove('hidden');
+      else docNotice.classList.add('hidden');
     }
 
     function unlockApp(userTitle) {
@@ -763,7 +796,7 @@
       unlockApp(`🎓 Student: ${tempAdm || 'Adarsh'}`);
     }
 
-    // 9. COMPLAINTS (TAB FORM & DATABASE FETCH)
+    // 9. COMPLAINTS (TAB & DB FETCH)
     async function loadComplaintsFromDb() {
       try {
         const res = await fetch('/api/complaints');
@@ -773,23 +806,23 @@
 
         container.innerHTML = '';
         if (list.length === 0) {
-          container.innerHTML = '<div class="p-4 bg-slate-900 border border-slate-800 rounded-2xl text-xs text-slate-500 text-center">Abhi koi complaint darj nahi hui hai.</div>';
+          container.innerHTML = '<div class="p-3 bg-slate-900 border border-slate-800 rounded-xl text-xs text-slate-500 text-center">Abhi koi complaint darj nahi hui hai.</div>';
           return;
         }
 
         list.forEach(c => {
           container.innerHTML += `
-            <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex flex-col sm:flex-row justify-between sm:items-center gap-2">
+            <div class="bg-slate-900 border border-slate-800 p-3 rounded-xl flex flex-col sm:flex-row justify-between sm:items-center gap-1.5">
               <div class="space-y-1">
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-1.5 flex-wrap">
                   <span class="text-xs font-mono font-bold text-amber-400">${c.ticket_id}</span>
-                  <span class="text-[10px] bg-slate-800 border border-slate-700 text-slate-300 px-2 py-0.5 rounded-full">${c.category}</span>
-                  <span class="text-[10px] text-slate-500">📍 ${c.location}</span>
+                  <span class="text-[9px] bg-slate-800 border border-slate-700 text-slate-300 px-1.5 py-0.5 rounded">${c.category}</span>
+                  <span class="text-[10px] text-slate-400">📍 ${c.location}</span>
                 </div>
-                <p class="text-xs text-slate-300 font-medium">${c.description}</p>
-                <div class="text-[10px] text-slate-500 font-mono">By: ${c.admission_no} • ${c.created_at}</div>
+                <p class="text-xs text-slate-300">${c.description}</p>
+                <div class="text-[9px] text-slate-500 font-mono">${c.admission_no} • ${c.created_at}</div>
               </div>
-              <span class="text-[10px] font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2.5 py-1 rounded-full self-start sm:self-center">
+              <span class="text-[9px] font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full self-start sm:self-center">
                 Pending ⏱️
               </span>
             </div>
@@ -803,30 +836,23 @@
       const loc = document.getElementById('mainCmpLocation').value.trim();
       const desc = document.getElementById('mainCmpDesc').value.trim();
 
-      if (!loc || !desc) {
-        return alert("Kripya Location aur Samasya ka vivaran dono bharein.");
-      }
+      if (!loc || !desc) return alert("Location aur vivaran dono bharein.");
 
       try {
         const res = await fetch('/submit-complaint', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({
-            category: cat,
-            location: loc,
-            description: desc,
-            admission_no: activeUser || "Student / Guest"
-          })
+          body: JSON.stringify({ category: cat, location: loc, description: desc, admission_no: activeUser || "Student / Guest" })
         });
         const d = await res.json();
         if (d.success) {
-          alert(`Grievance darj ho gayi! Ticket ID: ${d.ticket_id}`);
+          alert(`Grievance darj ho gayi! ID: ${d.ticket_id}`);
           document.getElementById('mainCmpLocation').value = '';
           document.getElementById('mainCmpDesc').value = '';
           loadComplaintsFromDb();
         }
       } catch (e) {
-        alert("Error: Complaint submit nahi ho saki.");
+        alert("Complaint submit karne me error aaya.");
       }
     }
 
@@ -847,11 +873,11 @@
         items.forEach(item => {
           const badgeClass = item.type === 'Lost' ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
           grid.innerHTML += `
-            <div class="bg-slate-900/90 border border-slate-800 p-5 rounded-2xl space-y-2">
-              <span class="text-[10px] ${badgeClass} border font-bold px-2 py-0.5 rounded-full uppercase">${item.type}</span>
-              <h4 class="font-bold text-sm text-white">${item.title}</h4>
-              <p class="text-xs text-slate-400">📍 ${item.location}</p>
-              <div class="text-xs text-blue-300 font-mono">📞 Contact: ${item.contact || 'Security Desk'}</div>
+            <div class="bg-slate-900/90 border border-slate-800 p-4 rounded-xl space-y-1.5">
+              <span class="text-[9px] ${badgeClass} border font-bold px-2 py-0.5 rounded-full uppercase">${item.type}</span>
+              <h4 class="font-bold text-xs sm:text-sm text-white">${item.title}</h4>
+              <p class="text-[11px] text-slate-400">📍 ${item.location}</p>
+              <div class="text-[11px] text-blue-300 font-mono">📞 Contact: ${item.contact || 'Security Desk'}</div>
             </div>
           `;
         });
@@ -878,7 +904,7 @@
           loadLostFoundItems();
         }
       } catch (e) {
-        alert("Save karne me error aaya.");
+        alert("Error saving item.");
       }
     }
 
@@ -916,10 +942,10 @@
         }
 
         cards.innerHTML += `
-          <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl space-y-1">
-            <span class="text-[10px] ${color} border font-bold px-2 py-0.5 rounded-full">${chance}</span>
+          <div class="bg-slate-900 border border-slate-800 p-3 rounded-xl space-y-1">
+            <span class="text-[9px] ${color} border font-bold px-2 py-0.5 rounded-full">${chance}</span>
             <h5 class="text-xs font-bold text-white mt-1">${b.name}</h5>
-            <p class="text-[10px] text-slate-500">Approx Cutoff: ~${b.cutoff.toLocaleString()}</p>
+            <p class="text-[10px] text-slate-500">Cutoff: ~${b.cutoff.toLocaleString()}</p>
           </div>
         `;
       });
